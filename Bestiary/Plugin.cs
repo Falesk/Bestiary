@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -55,6 +56,11 @@ namespace Bestiary
         private void RainWorld_UnloadResources(On.RainWorld.orig_UnloadResources orig, RainWorld self)
         {
             orig(self);
+            List<string> names = new List<string>();
+            foreach (string name in Futile.atlasManager._allElementsByName.Keys)
+                if (name.StartsWith("description_")) names.Add(name);
+            foreach (string name in names)
+                Futile.atlasManager.UnloadImage(name);
         }
 
         private void RainWorld_OnModsDisabled(On.RainWorld.orig_OnModsDisabled orig, RainWorld self, ModManager.Mod[] newlyDisabledMods)

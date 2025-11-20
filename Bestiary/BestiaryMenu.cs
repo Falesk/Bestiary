@@ -1,29 +1,27 @@
 ﻿using Menu;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using static Bestiary.BestiaryMenu.CreatureDescriptionPage;
 
 namespace Bestiary
 {
     public class BestiaryMenu : Menu.Menu
     {
-        private readonly bool debug = true;
+        private readonly bool debug = false;
         private readonly FSprite darkSprite;
-        private FSprite descriprionBoxBack, selectorBoxBack, slugcatSliderUp, slugcatSliderDown, entityPagerNext, entityPagerPrev;
+        private FSprite descriprionBoxBack, selectorBoxBack, slugcatSliderUp, slugcatSliderDown, entityPagerNext, entityPagerPrev, filterSprite, sortingSprite;
         private bool exiting, lastPauseButton;
         private FSprite[] slugcatSprites, entitySprites;
         private SimpleButton[] slugcatButtons, entityButtons;
-        public SimpleButton backButton, slugcatSliderUpButton, slugcatSliderDownButton, entityPagerNextButton, entityPagerPrevButton;
+        public SimpleButton backButton, slugcatSliderUpButton, slugcatSliderDownButton, entityPagerNextButton, entityPagerPrevButton, filterButton, sortingButton;
         public RoundedRect descriptionBoxBorder, selectorBoxBorder;
         public CreatureDescriptionPage currentDescription;
-        public MenuLabel emptinessLabel;
+        public MenuLabel emptinessLabel, pageLabel;
         public SlugcatInfo[] slugcats;
+        public Dictionary<string, CreatureDescriptionPage.Characteristic> characteristics;
         public const float buttonSize = 40f;
-        public const int buttonsInColumn = 9, slugsInColumn = 11;
+        public const int buttonsInColumn = 8, slugsInColumn = 11;
         public int choosedSlugcat, choosedEntity, slugcatSlideNum, entityPageNum;
         private int[] killScores;
 
@@ -34,8 +32,8 @@ namespace Bestiary
             pages[0].subObjects.Add(scene);
             darkSprite = new FSprite("pixel")
             {
-                scaleX = 1366,
-                scaleY = 770,
+                scaleX = manager.rainWorld.screenSize.x + 2,
+                scaleY = manager.rainWorld.screenSize.y + 2,
                 anchorX = 0,
                 anchorY = 0,
                 color = new Color(0f, 0f, 0f),
@@ -54,13 +52,14 @@ namespace Bestiary
             choosedEntity = -1;
             choosedSlugcat = -1;
 
+            InitKillScores();
             InitBoxes();
             InitSlugcats();
             InitSPButtons();
+            InitUpperPanel();
 
-            emptinessLabel = new MenuLabel(this, pages[0], string.Empty, descriprionBoxBack.GetPosition() + new Vector2(descriprionBoxBack.scaleX, descriprionBoxBack.scaleY) / 2f, Vector2.one, false);
+            emptinessLabel = new MenuLabel(this, pages[0], Plugin.Translate("[ Choose Slugcat ]"), descriprionBoxBack.GetPosition() + new Vector2(descriprionBoxBack.scaleX, descriprionBoxBack.scaleY) / 2f, Vector2.one, false);
             pages[0].subObjects.Add(emptinessLabel);
-            emptinessLabel.text = Plugin.Translate("[ Choose Slugcat ]");
             mySoundLoopID = SoundID.MENU_Main_Menu_LOOP;
         }
 
@@ -149,34 +148,41 @@ namespace Bestiary
                     entitySprites[i].RemoveFromContainer();
                 }
             }
-            List<SimpleButton> listEntityButtons = new List<SimpleButton>();
-            List<FSprite> listEntitySprites = new List<FSprite>();
 
-            for (int i = 0; i < slugcat.kills.Count; i++)
+            entityButtons = new SimpleButton[slugcat.kills.Count];
+            entitySprites = new FSprite[slugcat.kills.Count];
+            characteristics = new Dictionary<string, CreatureDescriptionPage.Characteristic>();
+
+            for (int i = 0; i < entityButtons.Length; i++)
             {
                 float critButtonSize = buttonSize + 12f;
-                float val = (selectorBoxBorder.size.x - critButtonSize - 67f) / 4f;
-                Vector2 pos = new Vector2(selectorBoxBorder.pos.x + critButtonSize + 67f * (listEntityButtons.Count % 4) + val / 2f, selectorBoxBorder.pos.y + selectorBoxBorder.size.y - 67f * (listEntityButtons.Count / 4) - val / 2.5f) - critButtonSize * Vector2.one;
-                SimpleButton entityButton = new SimpleButton(this, pages[0], string.Empty, $"ENTITY_{listEntityButtons.Count}", pos, critButtonSize * Vector2.one);
-                listEntityButtons.Add(entityButton);
+                entityButtons[i] = new SimpleButton(this, pages[0], string.Empty, $"ENTITY_{i}", Vector2.zero, critButtonSize * Vector2.one);
 
-                FSprite entitySprite = new FSprite("Sandbox_SmallQuestionmark")
+                FSprite entitySprite = new FSprite(Futile.atlasManager.GetElementWithName(CreatureSymbol.SpriteNameOfCreature(slugcat.kills[i].iconData)))
+                { color = CreatureSymbol.ColorOfCreature(slugcat.kills[i].iconData) };
+                entitySprites[i] = entitySprite;
+
+                CreatureTemplate cTemplate = StaticWorld.GetCreatureTemplate(slugcat.kills[i].iconData.critType);
+                CreatureDescriptionPage.Characteristic characteristic = new CreatureDescriptionPage.Characteristic()
                 {
-                    color = CreatureSymbol.ColorOfCreature(slugcat.kills[i].iconData),
-                    element = Futile.atlasManager.GetElementWithName(CreatureSymbol.SpriteNameOfCreature(slugcat.kills[i].iconData)),
-                    x = entityButton.pos.x + critButtonSize / 2f,
-                    y = entityButton.pos.y + critButtonSize / 2f,
+                    hp = cTemplate.baseDamageResistance,
+                    foodPoints = cTemplate.meatPoints,
+                    score = GetKillScore(slugcat.kills[i].iconData),
+                    kills = slugcat.kills[i].kills,
+                    behaviour = cTemplate.relationships[CreatureTemplate.Type.Slugcat.Index].type
                 };
-                listEntitySprites.Add(entitySprite);
+                if (cTemplate.breedParameters is LizardBreedParams breedParams)
+                {
+                    characteristic.damage = breedParams.biteDamage;
+                    characteristic.biteChance = breedParams.biteDamageChance;
+                }
+                if (!characteristics.ContainsKey(slugcat.kills[i].iconData.critType.value + slugcat.kills[i].iconData.intData.ToString()))
+                    characteristics.Add(slugcat.kills[i].iconData.critType.value + slugcat.kills[i].iconData.intData.ToString(), characteristic);
 
-                pages[0].subObjects.Add(entityButton);
-                pages[0].Container.AddChild(entitySprite);
+                pages[0].subObjects.Add(entityButtons[i]);
+                pages[0].Container.AddChild(entitySprites[i]);
             }
 
-            entityButtons = listEntityButtons.ToArray();
-            entitySprites = listEntitySprites.ToArray();
-
-            InitKillScores();
             InitPagerButtons();
             RefreshEntities();
         }
@@ -187,6 +193,58 @@ namespace Bestiary
             for (int i = 0; i < killScores.Length; i++)
                 killScores[i] = 0;
             SandboxSettingsInterface.DefaultKillScores(ref killScores);
+        }
+
+        public void InitUpperPanel()
+        {
+            Vector2 pos = new Vector2(selectorBoxBorder.pos.x + 140f, selectorBoxBorder.pos.y + 25f);
+            pageLabel = new MenuLabel(this, pages[0], string.Empty, pos, Vector2.one, false);
+            pageLabel.label.alignment = FLabelAlignment.Right;
+            pages[0].subObjects.Add(pageLabel);
+
+            pos = new Vector2(pos.x - 100f, pos.y + selectorBoxBorder.size.y - 65f);
+            filterButton = new SimpleButton(this, pages[0], string.Empty, "FILTER", pos, 25f * Vector2.one);
+            sortingButton = new SimpleButton(this, pages[0], string.Empty, "SORTING", pos + 40f * Vector2.right, 25f * Vector2.one);
+            pages[0].subObjects.Add(filterButton);
+            pages[0].subObjects.Add(sortingButton);
+
+            filterSprite = new FSprite("Menu_Symbol_Show_List")
+            {
+                color = MenuRGB(MenuColors.White),
+                x = filterButton.pos.x + 12.5f,
+                y = filterButton.pos.y + 12.5f
+            };
+            pages[0].Container.AddChild(filterSprite);
+
+            sortingSprite = new FSprite("Menu_Symbol_Shuffle")
+            {
+                color = MenuRGB(MenuColors.White),
+                x = sortingButton.pos.x + 12.5f,
+                y = sortingButton.pos.y + 12.5f
+            };
+            pages[0].Container.AddChild(sortingSprite);
+            UpdateUpperPanel(true);
+        }
+
+        public void UpdateUpperPanel(bool hide = false)
+        {
+            pageLabel.text = hide || entityButtons.Length / (4 * buttonsInColumn) == 0 ? string.Empty : 
+                Plugin.Translate("Page $ of %")
+                .Replace("$", (entityPageNum + 1).ToString())
+                .Replace("%", (entityButtons.Length / (4 * buttonsInColumn) + 1)
+                .ToString());
+            filterSprite.isVisible = !hide;
+            sortingSprite.isVisible = !hide;
+            ToggleButtonVisibility(filterButton, !hide);
+            ToggleButtonVisibility(sortingButton, !hide);
+        }
+
+        private void ToggleButtonVisibility(SimpleButton button, bool isVisible)
+        {
+            for (int i = 0; i < button.roundedRect.sprites.Length; i++)
+                button.roundedRect.sprites[i].isVisible = isVisible;
+            for (int i = 0; i < button.selectRect.sprites.Length; i++)
+                button.selectRect.sprites[i].isVisible = isVisible;
         }
 
         public bool CreatureIsKillable(CreatureTemplate.Type type)
@@ -232,14 +290,13 @@ namespace Bestiary
                     var kills = manager.rainWorld.progression.GetOrInitiateSaveState(name, null, manager.menuSetup, false).kills;
                     List<SlugcatInfo.KilledInfo> killedInfo = new List<SlugcatInfo.KilledInfo>();
                     for (int j = 0; j < kills.Count; j++)
-                        if (CreatureIsKillable(kills[j].Key.critType))
-                            killedInfo.Add(SlugcatInfo.KilledInfo.Transform(kills[j]));
+                        killedInfo.Add(SlugcatInfo.KilledInfo.Transform(kills[j]));
                     if (debugOpenAll)
                     {
                         for (int j = 0; j < CreatureTemplate.Type.values.Count; j++)
                         {
                             CreatureTemplate.Type type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(j));
-                            if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type)) && CreatureIsKillable(type) && type.value != "BabyLizard")
+                            if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type))/* && CreatureIsKillable(type)*/ && type.value != "BabyLizard")
                                 killedInfo.Add(new SlugcatInfo.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
                         }
                     }
@@ -294,14 +351,11 @@ namespace Bestiary
             bool flag = slugcatButtons.Length <= slugsInColumn;
             for (int i = 0; i < slugcatButtons.Length; i++)
             {
-                slugcatButtons[i].buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= slugsInColumn;
-                for (int j = 0; j < slugcatButtons[i].roundedRect.sprites.Length; j++)
-                    slugcatButtons[i].roundedRect.sprites[j].isVisible = !slugcatButtons[i].buttonBehav.greyedOut;
+                slugcatButtons[i].buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= slugsInColumn || slugcats[i].kills == null;
+                ToggleButtonVisibility(slugcatButtons[i], !slugcatButtons[i].buttonBehav.greyedOut);
                 slugcatButtons[i].pos = new Vector2(115f, (flag ? 710f : 670f) + 50f * (slugcatSlideNum - i)) - buttonSize * Vector2.one;
                 slugcatSprites[i].SetPosition(slugcatButtons[i].pos + (buttonSize / 2f) * Vector2.one);
                 slugcatSprites[i].alpha = slugcatButtons[i].buttonBehav.greyedOut ? 0f : 1f;
-
-                slugcatButtons[i].buttonBehav.greyedOut = slugcatButtons[i].buttonBehav.greyedOut || slugcats[i].kills == null;
             }
         }
 
@@ -314,7 +368,7 @@ namespace Bestiary
                     entityButtons[i].roundedRect.sprites[j].isVisible = !entityButtons[i].buttonBehav.greyedOut;
                 float critButtonSize = buttonSize + 12f;
                 float val = (selectorBoxBorder.size.x - critButtonSize - 67f) / 4f;
-                Vector2 pos = new Vector2(selectorBoxBorder.pos.x + critButtonSize + 67f * (i % 4) + val / 2f, selectorBoxBorder.pos.y + selectorBoxBorder.size.y - 67f * ((i / 4) % buttonsInColumn) - val / 2.5f) - critButtonSize * Vector2.one;
+                Vector2 pos = new Vector2(selectorBoxBorder.pos.x + critButtonSize + 67f * (i % 4) + val / 2f, selectorBoxBorder.pos.y + selectorBoxBorder.size.y - 67f * ((i / 4) % buttonsInColumn + 0.5f) - val / 2.5f) - critButtonSize * Vector2.one;
                 entityButtons[i].pos = pos;
 
                 entitySprites[i].SetPosition(entityButtons[i].pos + (critButtonSize / 2f) * Vector2.one);
@@ -397,6 +451,10 @@ namespace Bestiary
                     int index = int.Parse(button.signalText.Substring(button.signalText.LastIndexOf('_') + 1));
                     return Plugin.Translate(SlugcatStats.getSlugcatName(slugcats[index].name));
                 }
+                if (button.signalText.Contains("FILTER"))
+                    return Plugin.Translate("Creature filter");
+                if (button.signalText.Contains("SORTING"))
+                    return Plugin.Translate("Creature sorting");
             }
             return base.UpdateInfoText();
         }
@@ -414,8 +472,8 @@ namespace Bestiary
         {
             if (show)
             {
-                if (slugcats[choosedSlugcat].kills != null)
-                    emptinessLabel.text = Plugin.Translate(slugcats[choosedSlugcat].kills.Count > 0 ? "[ Choose Entity ]" : "[ Nothing to load ]");
+                if (slugcats[choosedSlugcat].kills?.Count > 0)
+                    emptinessLabel.text = Plugin.Translate("[ Choose Entity ]");
                 else emptinessLabel.text = "[ Nothing to load ]";
             }
             else emptinessLabel.text = string.Empty;
@@ -436,6 +494,7 @@ namespace Bestiary
                     InitCreatures(slugcats[choosedSlugcat]);
                     UpdateEntitiesWithInfo(slugcats[choosedSlugcat]);
                 }
+                UpdateUpperPanel(slugcats[choosedSlugcat].kills == null);
                 currentDescription?.Clear();
                 RefreshEmptinessLabel(true);
                 for (int i = 0; i < slugcatButtons.Length; i++)
@@ -459,20 +518,8 @@ namespace Bestiary
                     SlugcatInfo.KilledInfo critInfo = slugcats[choosedSlugcat].kills[choosedEntity];
                     currentDescription?.Clear();
 
-                    currentDescription = new CreatureDescriptionPage(this, critInfo.iconData.critType.ToString(), critInfo.iconData);
-                    CreatureTemplate cTemplate = StaticWorld.GetCreatureTemplate(critInfo.iconData.critType);
-                    
-                    CreatureDescriptionPage.Characteristic characteristic = new CreatureDescriptionPage.Characteristic()
-                    {
-                        hp = cTemplate.baseDamageResistance,
-                        foodPoints = cTemplate.meatPoints,
-                        score = GetKillScore(critInfo.iconData),
-                        kills = critInfo.kills,
-                        behaviour = cTemplate.relationships[CreatureTemplate.Type.Slugcat.Index].type
-                    };
-                    if (cTemplate.breedParameters is LizardBreedParams breedParams)
-                        characteristic.damage = breedParams.biteDamage;
-                    currentDescription.characteristic = characteristic;
+                    currentDescription = new CreatureDescriptionPage(this, critInfo.iconData)
+                    { characteristic = characteristics[critInfo.iconData.critType.value + critInfo.iconData.intData.ToString()] };
                     currentDescription.GenerateCharacteristicLabels();
 
                     RefreshEmptinessLabel(false);
@@ -500,6 +547,7 @@ namespace Bestiary
                 entityPagerNext.color = flag ? MenuRGB(MenuColors.DarkGrey) : MenuRGB(MenuColors.White);
                 entityPagerPrevButton.buttonBehav.greyedOut = entityPageNum == 0;
                 entityPagerPrev.color = entityPageNum == 0 ? MenuRGB(MenuColors.DarkGrey) : MenuRGB(MenuColors.White);
+                UpdateUpperPanel();
                 if (choosedSlugcat != -1)
                     RefreshEntities();
                 if (choosedEntity != -1)
@@ -513,10 +561,10 @@ namespace Bestiary
             if (killID > -1 && killID < killScores.Length)
                 return killScores[killID];
             CreatureTemplate template = StaticWorld.GetCreatureTemplate(symbolData.critType);
-            CreatureTemplate.Type ancestorName = template.ancestor.type;
-            if (ancestorName != template.TopAncestor().type)
+            CreatureTemplate ancestor = template.ancestor;
+            if (ancestor != null && ancestor.type != template.TopAncestor().type)
             {
-                symbolData.critType = ancestorName;
+                symbolData.critType = ancestor.type;
                 return GetKillScore(symbolData);
             }
             killID = (int)MultiplayerUnlocks.SandboxUnlockForSymbolData(symbolData);
@@ -535,6 +583,8 @@ namespace Bestiary
             slugcatSliderDown?.RemoveFromContainer();
             entityPagerNext?.RemoveFromContainer();
             entityPagerPrev?.RemoveFromContainer();
+            filterSprite?.RemoveFromContainer();
+            sortingSprite?.RemoveFromContainer();
             currentDescription?.Clear();
             for (int i = 0; i < slugcatSprites.Length; i++)
                 slugcatSprites[i].RemoveFromContainer();
@@ -546,18 +596,18 @@ namespace Bestiary
 
         public class CreatureDescriptionPage
         {
-            public string name;
-            public BestiaryMenu menu;
-            public RoundedRect imageBox;
-            public FSprite icon, image;
-            public MenuLabel[] entityDescription, entityCharacteristicLabels;
-            public MenuLabel entityName, entityDescriptionLabel;
+            private readonly string name;
+            private readonly BestiaryMenu menu;
+            private readonly RoundedRect imageBox;
+            private readonly FSprite icon, image;
+            private readonly MenuLabel entityName, entityDescriptionLabel;
+            private MenuLabel[] entityDescription, entityCharacteristicLabels;
             public Characteristic characteristic;
 
-            public CreatureDescriptionPage(BestiaryMenu owner, string _name, IconSymbol.IconSymbolData iconData)
+            public CreatureDescriptionPage(BestiaryMenu owner, IconSymbol.IconSymbolData iconData)
             {
                 menu = owner;
-                name = _name;
+                name = iconData.critType.ToString();
                 icon = new FSprite(CreatureSymbol.SpriteNameOfCreature(iconData))
                 {
                     color = CreatureSymbol.ColorOfCreature(iconData),
@@ -575,18 +625,21 @@ namespace Bestiary
                 menu.pages[0].subObjects.Add(entityDescriptionLabel);
 
                 Vector2 boxSize = new Vector2(480f, 270f);
-                imageBox = new RoundedRect(menu, menu.pages[0], menu.descriptionBoxBorder.pos + menu.descriptionBoxBorder.size - 30f * Vector2.one - boxSize, boxSize, true);
+                Vector2 boxPos = menu.descriptionBoxBorder.pos + menu.descriptionBoxBorder.size - 30f * Vector2.one - boxSize;
+                imageBox = new RoundedRect(menu, menu.pages[0], boxPos, boxSize, true);
                 for (int i = 0; i < imageBox.SideSprite(0); i++)
-                    imageBox.sprites[i].color = new Color(0.5f, 0.5f, 0.5f);
+                    imageBox.sprites[i].color = new Color(0.6f, 0.6f, 0.6f);
                 imageBox.fillAlpha = 0.65f;
                 menu.pages[0].subObjects.Add(imageBox);
 
                 string imageName = $"description_{name.ToLower()}";
-                if (Futile.atlasManager._allElementsByName.ContainsKey(imageName))
-                    image = new FSprite(imageName);
+                if (Futile.atlasManager._allElementsByName.TryGetValue(imageName, out FAtlasElement element))
+                {
+                    image = new FSprite(element);
+                    image.scale = Mathf.Min(0.8f * boxSize.x / image.element.sourceSize.x, 0.8f * boxSize.y / image.element.sourceSize.y);
+                }
                 else image = new FSprite("Sandbox_QuestionMark") { color = MenuRGB(MenuColors.Black) };
-                image.SetPosition(imageBox.pos + boxSize / 2f);
-                image.scale = 2f;
+                image.SetPosition(boxPos + boxSize / 2f);
                 menu.pages[0].Container.AddChild(image);
                 
                 GetDescription();
@@ -598,12 +651,12 @@ namespace Bestiary
                 string path = AssetManager.ResolveFilePath($"{RWCustom.Custom.rainWorld.inGameTranslator.SpecificTextFolderDirectory()}{Path.DirectorySeparatorChar}{name.ToLower()}.txt");
                 if (File.Exists(path))
                     lines = File.ReadAllLines(path);
-                else lines = new string[] { "CREATURE DESCRIPTION STUB" };
+                else lines = new string[] { "CAN'T FIND A CREATURE DESCRIPTION" };
 
                 entityDescription = new MenuLabel[lines.Length];
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    Vector2 pos = new Vector2(menu.descriprionBoxBack.GetPosition().x + 40f, entityDescriptionLabel.pos.y - 30f * (i + 1));
+                    Vector2 pos = new Vector2(menu.descriprionBoxBack.GetPosition().x + 40f, entityDescriptionLabel.pos.y - 30f * (i + 1.5f));
                     entityDescription[i] = new MenuLabel(menu, menu.pages[0], lines[i], pos, Vector2.one, false);
                     entityDescription[i].label.alignment = FLabelAlignment.Left;
                     menu.pages[0].subObjects.Add(entityDescription[i]);
@@ -631,11 +684,11 @@ namespace Bestiary
                 else
                 {
                     CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(baseString));
-                    string ancestorName = template.ancestor.type.ToString();
-                    if (ancestorName != template.TopAncestor().type.ToString())
-                        return ResolveName(ancestorName);
-                    if (RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestorName))
-                        return Plugin.Translate("creaturetype-" + ancestorName);
+                    CreatureTemplate ancestor = template.ancestor;
+                    if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
+                        return ResolveName(ancestor.type.value);
+                    if (ancestor != null && RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestor.type.value))
+                        return Plugin.Translate("creaturetype-" + ancestor.type.value) + $"\n({baseString})";
                     return baseString;
                 }
             }
@@ -643,8 +696,7 @@ namespace Bestiary
             public void Clear()
             {
                 icon.RemoveFromContainer();
-                image?.RemoveFromContainer();
-                entityName.RemoveSprites();
+                image.RemoveFromContainer();
                 menu.pages[0].RemoveSubObject(entityName);
                 entityName.RemoveSprites();
                 menu.pages[0].RemoveSubObject(entityDescriptionLabel);
@@ -668,29 +720,24 @@ namespace Bestiary
                 public float hp, damage, biteChance;
                 public int foodPoints, score, kills;
                 public CreatureTemplate.Relationship.Type behaviour;
+                public bool IsLizard => biteChance != default;
 
                 public string[] GenerateLines()
                 {
                     List<string> lines = new List<string>();
 
-                    string hlth = Plugin.Translate("Health: %");
-                    lines.Add(hlth.Replace("%", hp.ToString()));
                     if (damage != default)
-                    {
-                        string dmg = Plugin.Translate("Damage: %");
-                        lines.Add(dmg.Replace("%", damage.ToString()));
-                    }
+                        lines.Add(Plugin.Translate("Damage: %").Replace("%", damage.ToString()));
+                    if (biteChance != default)
+                        lines.Add(Plugin.Translate("Deadly Bite Chance: %").Replace("%", $"{biteChance * 100f:F1}%"));
+                    lines.Add(Plugin.Translate("Kill count: %").Replace("%", kills.ToString()));
                     if (foodPoints != 0)
-                    {
-                        string pips = Plugin.Translate("Restores % food pips to carnivorous slugcats");
-                        lines.Add(pips.Replace("%", foodPoints.ToString()));
-                    }
+                        lines.Add(Plugin.Translate("Restores % food pips to carnivorous slugcats").Replace("%", foodPoints.ToString()));
                     else lines.Add(Plugin.Translate("Doesn't restore food pips"));
+                    lines.Add(Plugin.Translate("Health: %").Replace("%", hp.ToString()));
                     lines.Add(Plugin.Translate("Behaviour") + ": " + Plugin.Translate($"behav-{behaviour.value}"));
-                    string kl = Plugin.Translate("Kill points: % ($ in total)");
-                    lines.Add(kl.Replace("%", score == -1 ? "?" : score.ToString()).Replace("$", score == -1 ? "?" : (score * kills).ToString()));
-                    kl = Plugin.Translate("Count of kills: %");
-                    lines.Add(kl.Replace("%", kills.ToString()));
+                    lines.Add(Plugin.Translate("Points per kill: %").Replace("%", score == -1 ? "?" : score.ToString()));
+                    lines.Add(Plugin.Translate("Total points: %").Replace("%", score == -1 ? "?" : (score * kills).ToString()));
                     return lines.ToArray();
                 }
             }
