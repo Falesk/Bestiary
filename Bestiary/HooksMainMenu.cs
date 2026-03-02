@@ -65,7 +65,7 @@ namespace Bestiary
             self.AddMainMenuButton(new SimpleButton(self, self.pages[0], self.Translate("BESTIARY"), "BESTIARY", pos, size), new Action(self.BestiaryButtonPressed), 2);
         }
 
-        private static void BestiaryButtonPressed(this MainMenu self)
+        public static void BestiaryButtonPressed(this MainMenu self)
         {
             self.manager.RequestMainProcessSwitch(BestiaryEnums.Bestiary);
             self.PlaySound(SoundID.MENU_Switch_Page_In);

@@ -14,15 +14,20 @@ namespace Bestiary
         public const string Name = "Bestiary";
         public const string Version = "1.0";
         public static ManualLogSource logger;
+        private bool loaded = false;
 
         public void Awake()
         {
             try
             {
-                On.RainWorld.OnModsInit += RainWorld_OnModsInit;
-                On.RainWorld.LoadModResources += RainWorld_LoadModResources;
-                On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
-                On.RainWorld.UnloadResources += RainWorld_UnloadResources;
+                if (!loaded)
+                {
+                    On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+                    On.RainWorld.LoadModResources += RainWorld_LoadModResources;
+                    On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
+                    On.RainWorld.UnloadResources += RainWorld_UnloadResources;
+                    loaded = true;
+                }
             }
             catch (Exception e) { Logger.LogError(e); }
         }
@@ -34,7 +39,7 @@ namespace Bestiary
             BestiaryEnums.UnregisterValues();
             BestiaryEnums.RegisterValues();
             HooksMainMenu.Init();
-            HooksPauseMenu.Init();
+            HooksKillingNotify.Init();
         }
 
         private void RainWorld_LoadModResources(On.RainWorld.orig_LoadModResources orig, RainWorld self)

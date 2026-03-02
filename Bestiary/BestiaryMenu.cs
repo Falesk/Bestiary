@@ -10,11 +10,11 @@ namespace Bestiary
     {
         private readonly bool debug = false;
         private readonly FSprite darkSprite;
-        private FSprite descriprionBoxBack, selectorBoxBack, slugcatSliderUp, slugcatSliderDown, entityPagerNext, entityPagerPrev, filterSprite, sortingSprite;
+        private FSprite descriprionBoxBack, selectorBoxBack, slugcatSliderUp, slugcatSliderDown, entityPagerNext, entityPagerPrev/*, filterSprite, sortingSprite*/;
         private bool exiting, lastPauseButton;
         private FSprite[] slugcatSprites, entitySprites;
         private SimpleButton[] slugcatButtons, entityButtons;
-        public SimpleButton backButton, slugcatSliderUpButton, slugcatSliderDownButton, entityPagerNextButton, entityPagerPrevButton, filterButton, sortingButton;
+        public SimpleButton backButton, slugcatSliderUpButton, slugcatSliderDownButton, entityPagerNextButton, entityPagerPrevButton/*, filterButton, sortingButton*/;
         public RoundedRect descriptionBoxBorder, selectorBoxBorder;
         public CreatureDescriptionPage currentDescription;
         public MenuLabel emptinessLabel, pageLabel;
@@ -149,8 +149,12 @@ namespace Bestiary
                 }
             }
 
-            entityButtons = new SimpleButton[slugcat.kills.Count];
-            entitySprites = new FSprite[slugcat.kills.Count];
+            int killsCount = 0;
+            if (slugcat.kills != null)
+                killsCount = slugcat.kills.Count;
+
+            entityButtons = new SimpleButton[killsCount];
+            entitySprites = new FSprite[killsCount];
             characteristics = new Dictionary<string, CreatureDescriptionPage.Characteristic>();
 
             for (int i = 0; i < entityButtons.Length; i++)
@@ -202,27 +206,27 @@ namespace Bestiary
             pageLabel.label.alignment = FLabelAlignment.Right;
             pages[0].subObjects.Add(pageLabel);
 
-            pos = new Vector2(pos.x - 100f, pos.y + selectorBoxBorder.size.y - 65f);
-            filterButton = new SimpleButton(this, pages[0], string.Empty, "FILTER", pos, 25f * Vector2.one);
-            sortingButton = new SimpleButton(this, pages[0], string.Empty, "SORTING", pos + 40f * Vector2.right, 25f * Vector2.one);
-            pages[0].subObjects.Add(filterButton);
-            pages[0].subObjects.Add(sortingButton);
+            //pos = new Vector2(pos.x - 100f, pos.y + selectorBoxBorder.size.y - 65f);
+            //filterButton = new SimpleButton(this, pages[0], string.Empty, "FILTER", pos, 25f * Vector2.one);
+            //sortingButton = new SimpleButton(this, pages[0], string.Empty, "SORTING", pos + 40f * Vector2.right, 25f * Vector2.one);
+            //pages[0].subObjects.Add(filterButton);
+            //pages[0].subObjects.Add(sortingButton);
 
-            filterSprite = new FSprite("Menu_Symbol_Show_List")
-            {
-                color = MenuRGB(MenuColors.White),
-                x = filterButton.pos.x + 12.5f,
-                y = filterButton.pos.y + 12.5f
-            };
-            pages[0].Container.AddChild(filterSprite);
+            //filterSprite = new FSprite("Menu_Symbol_Show_List")
+            //{
+            //    color = MenuRGB(MenuColors.White),
+            //    x = filterButton.pos.x + 12.5f,
+            //    y = filterButton.pos.y + 12.5f
+            //};
+            //pages[0].Container.AddChild(filterSprite);
 
-            sortingSprite = new FSprite("Menu_Symbol_Shuffle")
-            {
-                color = MenuRGB(MenuColors.White),
-                x = sortingButton.pos.x + 12.5f,
-                y = sortingButton.pos.y + 12.5f
-            };
-            pages[0].Container.AddChild(sortingSprite);
+            //sortingSprite = new FSprite("Menu_Symbol_Shuffle")
+            //{
+            //    color = MenuRGB(MenuColors.White),
+            //    x = sortingButton.pos.x + 12.5f,
+            //    y = sortingButton.pos.y + 12.5f
+            //};
+            //pages[0].Container.AddChild(sortingSprite);
             UpdateUpperPanel(true);
         }
 
@@ -233,10 +237,10 @@ namespace Bestiary
                 .Replace("$", (entityPageNum + 1).ToString())
                 .Replace("%", (entityButtons.Length / (4 * buttonsInColumn) + 1)
                 .ToString());
-            filterSprite.isVisible = !hide;
-            sortingSprite.isVisible = !hide;
-            ToggleButtonVisibility(filterButton, !hide);
-            ToggleButtonVisibility(sortingButton, !hide);
+            //filterSprite.isVisible = !hide;
+            //sortingSprite.isVisible = !hide;
+            //ToggleButtonVisibility(filterButton, !hide);
+            //ToggleButtonVisibility(sortingButton, !hide);
         }
 
         private void ToggleButtonVisibility(SimpleButton button, bool isVisible)
@@ -351,7 +355,7 @@ namespace Bestiary
             bool flag = slugcatButtons.Length <= slugsInColumn;
             for (int i = 0; i < slugcatButtons.Length; i++)
             {
-                slugcatButtons[i].buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= slugsInColumn || slugcats[i].kills == null;
+                slugcatButtons[i].buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= slugsInColumn/* || slugcats[i].kills == null*/;
                 ToggleButtonVisibility(slugcatButtons[i], !slugcatButtons[i].buttonBehav.greyedOut);
                 slugcatButtons[i].pos = new Vector2(115f, (flag ? 710f : 670f) + 50f * (slugcatSlideNum - i)) - buttonSize * Vector2.one;
                 slugcatSprites[i].SetPosition(slugcatButtons[i].pos + (buttonSize / 2f) * Vector2.one);
@@ -474,7 +478,7 @@ namespace Bestiary
             {
                 if (slugcats[choosedSlugcat].kills?.Count > 0)
                     emptinessLabel.text = Plugin.Translate("[ Choose Entity ]");
-                else emptinessLabel.text = "[ Nothing to load ]";
+                else emptinessLabel.text = Plugin.Translate("[ Nothing to load ]");
             }
             else emptinessLabel.text = string.Empty;
         }
@@ -489,12 +493,9 @@ namespace Bestiary
             {
                 PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 choosedSlugcat = int.Parse(message.Substring(message.LastIndexOf('_') + 1));
-                if (slugcats[choosedSlugcat].kills != null)
-                {
-                    InitCreatures(slugcats[choosedSlugcat]);
-                    UpdateEntitiesWithInfo(slugcats[choosedSlugcat]);
-                }
-                UpdateUpperPanel(slugcats[choosedSlugcat].kills == null);
+                InitCreatures(slugcats[choosedSlugcat]);
+                UpdateEntitiesWithInfo(slugcats[choosedSlugcat]);
+                UpdateUpperPanel(slugcats[choosedSlugcat].kills == null || slugcats[choosedSlugcat].kills.Count == 0);
                 currentDescription?.Clear();
                 RefreshEmptinessLabel(true);
                 for (int i = 0; i < slugcatButtons.Length; i++)
@@ -583,8 +584,8 @@ namespace Bestiary
             slugcatSliderDown?.RemoveFromContainer();
             entityPagerNext?.RemoveFromContainer();
             entityPagerPrev?.RemoveFromContainer();
-            filterSprite?.RemoveFromContainer();
-            sortingSprite?.RemoveFromContainer();
+            //filterSprite?.RemoveFromContainer();
+            //sortingSprite?.RemoveFromContainer();
             currentDescription?.Clear();
             for (int i = 0; i < slugcatSprites.Length; i++)
                 slugcatSprites[i].RemoveFromContainer();
