@@ -15,6 +15,7 @@ namespace Bestiary
         public const string Version = "1.0";
         public static ManualLogSource logger;
         private bool loaded = false;
+        public static Queue<KillingNotify> killingNotifyQueue;
 
         public void Awake()
         {
@@ -36,6 +37,7 @@ namespace Bestiary
         {
             orig(self);
             logger = Logger;
+            killingNotifyQueue = new Queue<KillingNotify>();
             BestiaryEnums.UnregisterValues();
             BestiaryEnums.RegisterValues();
             HooksMainMenu.Init();
@@ -86,6 +88,23 @@ namespace Bestiary
                 RWCustom.Custom.rainWorld.options.language = new InGameTranslator.LanguageID(currLang);
             }
             return translation;
+        }
+
+        public static string ResolveCreatureName(string critType)
+        {
+            string name = "creaturetype-" + critType;
+            if (RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation(name))
+                return Translate(name);
+            else
+            {
+                CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(critType));
+                CreatureTemplate ancestor = template.ancestor;
+                if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
+                    return ResolveCreatureName(ancestor.type.value);
+                if (ancestor != null && RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestor.type.value))
+                    return Translate("creaturetype-" + ancestor.type.value) + $"\n({critType})";
+                return critType;
+            }
         }
     }
 }

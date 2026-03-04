@@ -617,7 +617,7 @@ namespace Bestiary
                 icon.SetPosition(menu.descriprionBoxBack.GetPosition() + new Vector2(50f, menu.descriprionBoxBack.scaleY - 50f));
                 menu.pages[0].Container.AddChild(icon);
 
-                entityName = new MenuLabel(menu, menu.pages[0], ResolveName(name), menu.descriprionBoxBack.GetPosition() + new Vector2(100f, menu.descriprionBoxBack.scaleY - 50f), Vector2.one, true);
+                entityName = new MenuLabel(menu, menu.pages[0], Plugin.ResolveCreatureName(name), menu.descriprionBoxBack.GetPosition() + new Vector2(100f, menu.descriprionBoxBack.scaleY - 50f), Vector2.one, true);
                 entityName.label.alignment = FLabelAlignment.Left;
                 menu.pages[0].subObjects.Add(entityName);
 
@@ -674,23 +674,6 @@ namespace Bestiary
                     entityCharacteristicLabels[i] = new MenuLabel(menu, menu.pages[0], lines[i], pos, Vector2.one, false);
                     entityCharacteristicLabels[i].label.alignment = FLabelAlignment.Left;
                     menu.pages[0].subObjects.Add(entityCharacteristicLabels[i]);
-                }
-            }
-
-            private string ResolveName(string baseString)
-            {
-                string name = "creaturetype-" + baseString;
-                if (RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation(name))
-                    return Plugin.Translate(name);
-                else
-                {
-                    CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(baseString));
-                    CreatureTemplate ancestor = template.ancestor;
-                    if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
-                        return ResolveName(ancestor.type.value);
-                    if (ancestor != null && RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestor.type.value))
-                        return Plugin.Translate("creaturetype-" + ancestor.type.value) + $"\n({baseString})";
-                    return baseString;
                 }
             }
 
