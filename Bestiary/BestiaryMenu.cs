@@ -372,7 +372,7 @@ namespace Bestiary
                     entityButtons[i].roundedRect.sprites[j].isVisible = !entityButtons[i].buttonBehav.greyedOut;
                 float critButtonSize = buttonSize + 12f;
                 float val = (selectorBoxBorder.size.x - critButtonSize - 67f) / 4f;
-                Vector2 pos = new Vector2(selectorBoxBorder.pos.x + critButtonSize + 67f * (i % 4) + val / 2f, selectorBoxBorder.pos.y + selectorBoxBorder.size.y - 67f * ((i / 4) % buttonsInColumn + 0.5f) - val / 2.5f) - critButtonSize * Vector2.one;
+                Vector2 pos = new Vector2(selectorBoxBorder.pos.x + critButtonSize + 67f * (i % 4) + val / 2f, selectorBoxBorder.pos.y + selectorBoxBorder.size.y - 67f * ((i / 4) % buttonsInColumn/* + 0.5f*/) - val / 2.5f) - critButtonSize * Vector2.one;
                 entityButtons[i].pos = pos;
 
                 entitySprites[i].SetPosition(entityButtons[i].pos + (critButtonSize / 2f) * Vector2.one);

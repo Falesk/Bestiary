@@ -17,7 +17,8 @@ namespace Bestiary
             orig(self);
             if (Input.GetKeyDown("p"))
             {
-                self.room.AddObject(new KillingNotify(self.room, CreatureTemplate.Type.GreenLizard));
+                int rand = (int)Mathf.Lerp(0, StaticWorld.creatureTemplates.Length, Random.value);
+                self.room.AddObject(new KillingNotify(self.room, StaticWorld.creatureTemplates[rand].type));
             }
         }
 
@@ -28,6 +29,8 @@ namespace Bestiary
             foreach (KillingNotify notify in Plugin.killingNotifyQueue)
             {
                 prevRoom?.RemoveObject(notify);
+                notify.killLabel?.RemoveFromContainer();
+                notify.killLabelShadow?.RemoveFromContainer();
                 newRoom.AddObject(notify);
             }
         }
