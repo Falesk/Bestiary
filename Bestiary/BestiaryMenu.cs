@@ -651,7 +651,7 @@ namespace Bestiary
                 string[] lines;
                 string path = AssetManager.ResolveFilePath($"{RWCustom.Custom.rainWorld.inGameTranslator.SpecificTextFolderDirectory()}{Path.DirectorySeparatorChar}{name.ToLower()}.txt");
                 if (File.Exists(path))
-                    lines = File.ReadAllLines(path);
+                    lines = File.ReadAllText(path).Split(new string[] { "<LINE>" }, System.StringSplitOptions.None);
                 else lines = new string[] { "CAN'T FIND A CREATURE DESCRIPTION" };
 
                 entityDescription = new MenuLabel[lines.Length];

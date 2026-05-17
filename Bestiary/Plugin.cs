@@ -14,34 +14,34 @@ namespace Bestiary
         public const string Name = "Bestiary";
         public const string Version = "1.0";
         public static ManualLogSource logger;
-        private bool loaded = false;
+        private static bool loaded = false;
         public static Queue<KillingNotify> killingNotifyQueue;
 
         public void Awake()
         {
-            try
-            {
-                if (!loaded)
-                {
-                    On.RainWorld.OnModsInit += RainWorld_OnModsInit;
-                    On.RainWorld.LoadModResources += RainWorld_LoadModResources;
-                    On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
-                    On.RainWorld.UnloadResources += RainWorld_UnloadResources;
-                    loaded = true;
-                }
-            }
-            catch (Exception e) { Logger.LogError(e); }
+            logger = Logger;
+            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+            On.RainWorld.LoadModResources += RainWorld_LoadModResources;
+            On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
+            On.RainWorld.UnloadResources += RainWorld_UnloadResources;
         }
 
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-            logger = Logger;
-            killingNotifyQueue = new Queue<KillingNotify>();
-            BestiaryEnums.UnregisterValues();
-            BestiaryEnums.RegisterValues();
-            HooksMainMenu.Init();
-            HooksKillingNotify.Init();
+            try
+            {
+                if (!loaded)
+                {
+                    killingNotifyQueue = new Queue<KillingNotify>();
+                    BestiaryEnums.UnregisterValues();
+                    BestiaryEnums.RegisterValues();
+                    HooksMainMenu.Init();
+                    HooksKillingNotify.Init();
+                    loaded = true;
+                }
+            }
+            catch (Exception e) { Logger.LogError(e); }
         }
 
         private void RainWorld_LoadModResources(On.RainWorld.orig_LoadModResources orig, RainWorld self)
@@ -50,13 +50,10 @@ namespace Bestiary
             string illustrationsDir = AssetManager.ResolveDirectory("crit_illustrations");
             foreach (string file in Directory.GetFiles(illustrationsDir))
             {
-                string imagePath = $"crit_illustrations/{Path.GetFileNameWithoutExtension(file)}";
                 string name = $"description_{Path.GetFileNameWithoutExtension(file)}";
-                Futile.atlasManager.LoadImage(imagePath);
-                FAtlasElement element = Futile.atlasManager.GetElementWithName(imagePath);
-                element.name = name;
-                Futile.atlasManager._allElementsByName.Remove(name);
-                Futile.atlasManager.AddElement(element);
+                string imagePath = $"crit_illustrations/{Path.GetFileNameWithoutExtension(file)}";
+                if (!Futile.atlasManager.DoesContainAtlas(name))
+                    Futile.atlasManager.ActuallyLoadAtlasOrImage(name, imagePath, string.Empty);
             }
         }
 
@@ -67,7 +64,7 @@ namespace Bestiary
             foreach (string name in Futile.atlasManager._allElementsByName.Keys)
                 if (name.StartsWith("description_")) names.Add(name);
             foreach (string name in names)
-                Futile.atlasManager.UnloadImage(name);
+                Futile.atlasManager.ActuallyUnloadAtlasOrImage(name);
         }
 
         private void RainWorld_OnModsDisabled(On.RainWorld.orig_OnModsDisabled orig, RainWorld self, ModManager.Mod[] newlyDisabledMods)
