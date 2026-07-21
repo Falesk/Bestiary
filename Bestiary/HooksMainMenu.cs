@@ -31,7 +31,7 @@ namespace Bestiary
                 c.EmitDelegate<Action<ProcessManager, ProcessManager.ProcessID>>((self, ID) =>
                 {
                     if (ID == BestiaryEnums.Bestiary)
-                        self.currentMainLoop = new BestiaryMenu(self);
+                        self.currentMainLoop = new BMenu.BestiaryMenu(self);
                 });
             }
             catch (Exception e) { Plugin.logger.LogError(e); }

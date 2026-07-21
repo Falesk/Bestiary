@@ -15,7 +15,6 @@ namespace Bestiary
         public const string Version = "1.0";
         public static ManualLogSource logger;
         private static bool loaded = false;
-        public static Queue<KillingNotify> killingNotifyQueue;
 
         public void Awake()
         {
@@ -33,7 +32,6 @@ namespace Bestiary
             {
                 if (!loaded)
                 {
-                    killingNotifyQueue = new Queue<KillingNotify>();
                     BestiaryEnums.UnregisterValues();
                     BestiaryEnums.RegisterValues();
                     HooksMainMenu.Init();

@@ -1,4 +1,5 @@
 ﻿using RWCustom;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace Bestiary
             Custom.rainWorld.screenSize.x * screenEdgeOffsetX,
             Custom.rainWorld.screenSize.y * screenEdgeOffsetY
         );
-        public int LifeSpan => 200;
+        public const int LifeSpan = 200;
         public int lifeTime, numberInQueue;
         public FLabel killLabel, killLabelShadow;
 
@@ -23,19 +24,17 @@ namespace Bestiary
 
         private const float QueueOffset = 50f;
 
-        private int BackSprite => 0;
-        private int IconSprite => 2;
+        private const int BackSprite = 0;
+        private const int IconSprite = 2;
+
+        private int ascendingProgress;
+        private int maxAscending;
+        private const int ascendingTime = 20;
 
         public KillingNotify(Room room, CreatureTemplate.Type victimType) : base()
         {
             int maxV = -1;
-            foreach (var note in Plugin.killingNotifyQueue)
-            {
-                if (note.numberInQueue > maxV)
-                    maxV = note.numberInQueue;
-            }
             numberInQueue = maxV + 1;
-            Plugin.killingNotifyQueue.Enqueue(this);
             creatureType = victimType;
             this.room = room;
             pos = Pos + numberInQueue * new Vector2(0f, QueueOffset);
@@ -66,12 +65,13 @@ namespace Bestiary
             }
 
             if (lifeTime == 5)
-                room.PlaySound(SoundID.HUD_Food_Meter_Deplete_Plop_A, 0, 1.2f, Mathf.Lerp(0.9f, 1.1f, Random.value));
+                room.PlaySound(SoundID.HUD_Food_Meter_Deplete_Plop_A, 0, 1.2f, Mathf.Lerp(0.9f, 1.1f, UnityEngine.Random.value));
+
+            if (ascendingProgress < maxAscending)
+                ascendingProgress++;
 
             if (++lifeTime > LifeSpan)
             {
-                if (Plugin.killingNotifyQueue.Contains(this))
-                    Plugin.killingNotifyQueue.Dequeue();
                 Destroy();
             }
         }
@@ -82,6 +82,8 @@ namespace Bestiary
             killLabelShadow?.RemoveFromContainer();
             base.Destroy();
         }
+
+        public void AscendNotify() => maxAscending += 20;
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
@@ -124,6 +126,7 @@ namespace Bestiary
             Vector2 slideOutProgression = animationProgress[(int)AnimationType.SlideOut] * slideOutDir;
             Vector2 iconStartPos = pos - new Vector2(0f, 0.5f * QueueOffset);
             Vector2 iconPos = Vector2.Lerp(iconStartPos, pos, animationProgress[(int)AnimationType.Icon]) + slideOutProgression;
+            Vector2 ascendingOffset = maxAscending == 0 ? Vector2.zero : Vector2.up * QueueOffset * ((float)ascendingProgress / ascendingTime);
 
             sLeaser.sprites[BackSprite].scaleX = (1 / scaleOfBackground.x) * distToRightEdge * 1.2f;
             sLeaser.sprites[BackSprite].scaleY = (1 / scaleOfBackground.y) * QueueOffset;
@@ -155,9 +158,12 @@ namespace Bestiary
             sLeaser.sprites[ShadowSprite(LineSprite(1))].scaleY = Mathf.Lerp(0f, linesLength, animationProgress[(int)AnimationType.Line2]);
             sLeaser.sprites[ShadowSprite(LineSprite(1))].SetPosition(pos + line2Offset + slideOutProgression + shadowOffset);
 
+            foreach (FSprite sprite in sLeaser.sprites)
+                sprite.SetPosition(sprite.GetPosition() + ascendingOffset);
+
             Vector2 textPosOffset = Vector2.right * 30;
-            killLabel.SetPosition(pos + textPosOffset + slideOutProgression);
-            killLabelShadow.SetPosition(pos + textPosOffset + slideOutProgression + shadowOffset);
+            killLabel.SetPosition(pos + textPosOffset + slideOutProgression + ascendingOffset);
+            killLabelShadow.SetPosition(pos + textPosOffset + slideOutProgression + shadowOffset + ascendingOffset);
 
             if (animationProgress[(int)AnimationType.SlideOut] != 0f)
             {

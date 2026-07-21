@@ -90,10 +90,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BestiaryEnums.cs" />
-    <Compile Include="BestiaryMenu.cs" />
+    <Compile Include="BMenu\BestiaryMenu.cs" />
+    <Compile Include="BMenu\Characteristic.cs" />
+    <Compile Include="BMenu\SlugcatInfo.cs" />
+    <Compile Include="CustomData.cs" />
     <Compile Include="HooksKillingNotify.cs" />
     <Compile Include="HooksMainMenu.cs" />
     <Compile Include="KillingNotify.cs" />
+    <Compile Include="BMenu\CreatureDescriptionPage.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
