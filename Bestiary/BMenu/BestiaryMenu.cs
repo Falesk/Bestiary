@@ -7,7 +7,7 @@ namespace Bestiary.BMenu
 {
     public class BestiaryMenu : Menu.Menu
     {
-        private readonly bool debug = false;
+        private readonly bool debug = true;
         private readonly FSprite darkSprite;
         private FSprite descriprionBoxBack, selectorBoxBack, slugcatSliderUp, slugcatSliderDown, entityPagerNext, entityPagerPrev/*, filterSprite, sortingSprite*/;
         private bool exiting, lastPauseButton;
@@ -518,8 +518,9 @@ namespace Bestiary.BMenu
                     SlugcatInfo.KilledInfo critInfo = slugcats[choosedSlugcat].kills[choosedEntity];
                     currentDescription?.Clear();
 
+                    Vector2 position = new Vector2(descriprionBoxBack.x, descriprionBoxBack.y);
                     currentDescription = new CreatureDescriptionPage(this, critInfo.iconData,
-                        new Rect(descriprionBoxBack.GetPosition(), new Vector2(descriprionBoxBack.scaleX, descriprionBoxBack.scaleY)))
+                        new Rect(position, new Vector2(descriprionBoxBack.scaleX, descriprionBoxBack.scaleY)))
                     { characteristic = characteristics[critInfo.iconData.critType.value + critInfo.iconData.intData.ToString()] };
                     currentDescription.GenerateCharacteristicLabels();
 

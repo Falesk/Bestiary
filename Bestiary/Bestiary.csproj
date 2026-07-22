@@ -90,8 +90,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BestiaryEnums.cs" />
+    <Compile Include="BMenu\BackButton.cs" />
+    <Compile Include="BMenu\BestiaryButton.cs" />
     <Compile Include="BMenu\BestiaryMenu.cs" />
+    <Compile Include="BMenu\BM.cs" />
+    <Compile Include="BMenu\BoxManager.cs" />
+    <Compile Include="BMenu\ButtonManager.cs" />
     <Compile Include="BMenu\Characteristic.cs" />
+    <Compile Include="BMenu\SlugcatButton.cs" />
     <Compile Include="BMenu\SlugcatInfo.cs" />
     <Compile Include="CustomData.cs" />
     <Compile Include="HooksKillingNotify.cs" />
