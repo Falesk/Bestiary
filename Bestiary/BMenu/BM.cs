@@ -11,6 +11,7 @@ namespace Bestiary.BMenu
         public static Vector2 ResolutionOffset => 0.5f * Vector2.right * (1366f - RWCustom.Custom.rainWorld.options.ScreenSize.x);
         public BoxManager boxManager;
         public ButtonManager buttonManager;
+        public SlugcatManager slugcatManager;
         public CreatureDescriptionPage currentDescription;
 
         public BM(ProcessManager manager) : base(manager, BestiaryEnums.Bestiary)
@@ -33,10 +34,13 @@ namespace Bestiary.BMenu
             };
             pages[0].Container.AddChild(backgroundDark);
 
+            slugcatManager = new SlugcatManager(this);
+
             boxManager = new BoxManager(this);
             InitBoxes();
 
             buttonManager = new ButtonManager(this);
+            slugcatManager.InitSlugcats();
             InitButtons();
         }
 
@@ -60,6 +64,11 @@ namespace Bestiary.BMenu
             Vector2 size = new Vector2(0.07f, 0.04f);
             Vector2 pos = new Vector2(boxManager.boxes["selectorBox"].normilizedPos.x + 0.02f, (boxManager.boxes["selectorBox"].normilizedPos.y - size.y) / 2);
             buttonManager.CreateBackButton(pos, size);
+
+            Vector2 offset = new Vector2(0f, -1.25f * SlugcatButton.ButtonSize.y);
+            Vector2 pos2 = new Vector2(boxManager.boxes["selectorBox"].normilizedPos.x, boxManager.boxes["selectorBox"].normilizedPos.y + boxManager.boxes["selectorBox"].normilizedSize.y);
+            pos2 = 0.5f * (pos2 + offset * SlugcatManager.slugsInColumn) + Vector2.left * 0.02f;
+            buttonManager.CreateSlugcatButtons(pos2, offset);
         }
 
         public override void Update()
@@ -91,6 +100,11 @@ namespace Bestiary.BMenu
             base.Singal(sender, message);
             if (message == "BACK")
                 buttonManager.backButton.Action();
+            if (message.Contains("SLUGCAT"))
+            {
+                int index = int.Parse(message.Substring(message.LastIndexOf('_') + 1));
+                buttonManager.slugcatButtons[index].Action();
+            }
         }
 
         public override void ShutDownProcess()

@@ -13,7 +13,6 @@ namespace Bestiary.BMenu
         {
             base.CreateButton();
             owner.bMenu.backObject = button;
-            SetSelectables();
         }
 
         public override void Action()

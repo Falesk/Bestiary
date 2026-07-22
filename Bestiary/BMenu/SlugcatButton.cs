@@ -4,29 +4,35 @@ namespace Bestiary.BMenu
 {
     public class SlugcatButton : BestiaryButton
     {
-        public SlugcatStats.Name slug;
-        public SlugcatButton(ButtonManager buttonManager, SlugcatStats.Name slugName, int index, Vector2 nPos)
-            : base(buttonManager, $"SLUGCAT_{index}", nPos, 0.05f * new Vector2(BM.Resolution.y / BM.Resolution.x, 1f), slugName == null ? "Sandbox_SmallQuestionmark" : "Kill_Slugcat", true)
+        public SlugcatInfo slug;
+        public int index;
+        public static Vector2 ButtonSize => 0.05f * new Vector2(BM.Resolution.y / BM.Resolution.x, 1f);
+        //public static Vector2 FirstButtonPos => new Vector2(0.04f, 0.825f);
+
+        public SlugcatButton(ButtonManager buttonManager, Vector2 nPos, SlugcatInfo slugInfo, int index)
+            : base(buttonManager, $"SLUGCAT_{index}", nPos, ButtonSize, slugInfo.kills != null ? "Kill_Slugcat" : "Sandbox_SmallQuestionmark", true)
         {
-            slug = slugName;
+            slug = slugInfo;
+            this.index = index;
+            SetIcon();
         }
 
-        protected override void CreateIcon()
+        private void SetIcon()
         {
-            base.CreateIcon();
-            icon.color = slug != null ? PlayerGraphics.DefaultSlugcatColor(slug) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-            icon.SetPosition(button.pos + button.size / 2f);
-            //FSprite slugSpite = new FSprite(hasSave ? "Kill_Slugcat" : "Sandbox_SmallQuestionmark")
-            //{
-            //    color = hasSave ? PlayerGraphics.DefaultSlugcatColor(name) : MenuRGB(MenuColors.DarkGrey),
-            //    x = slugButton.pos.x + buttonSize / 2f,
-            //    y = slugButton.pos.y + buttonSize / 2f
-            //};
+            icon.color = slug.kills != null ? PlayerGraphics.DefaultSlugcatColor(slug.name) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+            icon.SetPosition(Rectangle.position + Rectangle.size / 2f - BM.ResolutionOffset);
+        }
+
+        protected override void SetSelectables()
+        {
+            button.nextSelectable[0] = button;
+            button.nextSelectable[2] = button;
         }
 
         public override void Action()
         {
             base.Action();
+            owner.bMenu.slugcatManager.Action(index);
         }
     }
 }

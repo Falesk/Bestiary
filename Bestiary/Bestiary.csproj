@@ -99,6 +99,7 @@
     <Compile Include="BMenu\Characteristic.cs" />
     <Compile Include="BMenu\SlugcatButton.cs" />
     <Compile Include="BMenu\SlugcatInfo.cs" />
+    <Compile Include="BMenu\SlugcatManager.cs" />
     <Compile Include="CustomData.cs" />
     <Compile Include="HooksKillingNotify.cs" />
     <Compile Include="HooksMainMenu.cs" />

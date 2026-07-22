@@ -12,6 +12,7 @@ namespace Bestiary.BMenu
         public string name;
         public string text;
         public FSprite icon;
+        protected bool created;
 
         public BestiaryButton(ButtonManager buttonManager, string name, Vector2 nPos, Vector2 nSize, string text, bool hasIcon)
         {
@@ -21,7 +22,7 @@ namespace Bestiary.BMenu
             normilizedSize = nSize;
             if (hasIcon)
             {
-                CreateIcon();
+                icon = new FSprite(text);
                 this.text = string.Empty;
             }
             else
@@ -40,21 +41,28 @@ namespace Bestiary.BMenu
         {
         }
 
-        protected virtual void CreateIcon()
+        public virtual void SetPosition(Vector2 nPos)
         {
-            icon = new FSprite(text);
+            normilizedPos = nPos;
+            button.pos = Rectangle.position;
+            icon?.SetPosition(Rectangle.position + Rectangle.size / 2f - BM.ResolutionOffset);
         }
 
         public virtual void CreateButton()
         {
+            if (created) return;
+
             button = new SimpleButton(owner.bMenu, owner.bMenu.pages[0], text, name, Rectangle.position, Rectangle.size);
             owner.bMenu.pages[0].subObjects.Add(button);
             if (icon != null)
                 owner.bMenu.pages[0].Container.AddChild(icon);
+            created = true;
+            SetSelectables();
         }
 
         public virtual void Clear()
         {
+            if (!created) return;
             owner.bMenu.pages[0].RemoveSubObject(button);
             button?.RemoveSprites();
             icon?.RemoveFromContainer();
