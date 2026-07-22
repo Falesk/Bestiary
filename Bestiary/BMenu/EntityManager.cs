@@ -1,0 +1,119 @@
+﻿using Menu;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Bestiary.BMenu
+{
+    public class EntityManager
+    {
+        public BM bMenu;
+        public const int buttonsInColumn = 8, buttonsInRow = 4;
+        public int PagesTotal => EntitiesTotal / (buttonsInRow * buttonsInColumn) + 1;
+        public int CurrentPage => _entityPageNum;
+        public int EntitiesTotal => currentEntities.Count;
+        public int SelectedEntity { get; private set; }
+
+        private int _entityPageNum;
+        private readonly MenuLabel _emptinessLabel, _pageLabel;
+        private readonly List<SaveInfo.Info> currentEntities;
+
+        public EntityManager(BM owner)
+        {
+            bMenu = owner;
+            SelectedEntity = -1;
+            _entityPageNum = 0;
+
+            currentEntities = new List<SaveInfo.Info>();
+
+            Rect box = bMenu.boxManager.boxes["selectorBox"].Rectangle;
+            Vector2 labelPos = box.position + box.size * 0.5f;
+            _emptinessLabel = new MenuLabel(bMenu, bMenu.pages[0], Plugin.Translate("[ No Entries ]"), labelPos, Vector2.zero, false);
+            _emptinessLabel.label.alignment = FLabelAlignment.Center;
+            bMenu.pages[0].subObjects.Add(_emptinessLabel);
+
+            labelPos = box.position + new Vector2(box.size.x * 0.5f, 25f);
+            _pageLabel = new MenuLabel(bMenu, bMenu.pages[0], string.Empty, labelPos, Vector2.zero, false);
+            _pageLabel.label.alignment = FLabelAlignment.Right;
+            bMenu.pages[0].subObjects.Add(_pageLabel);
+
+            UpdatePageLabel(true);
+        }
+
+        public SaveInfo.Info GetEntityByIndex(int index) => currentEntities[index];
+
+        public void UpdateEmptinessLabel(bool show) => _emptinessLabel.text = show ? Plugin.Translate("[ No Entries ]") : string.Empty;
+        public void UpdatePageLabel(bool show) => _pageLabel.text = show ?
+            Plugin.Translate("Page $ of %")
+            .Replace("$", (_entityPageNum + 1).ToString())
+            .Replace("%", PagesTotal.ToString()) : string.Empty;
+
+        public void LoadEntities(SaveInfo save)
+        {
+            currentEntities.Clear();
+            bMenu.buttonManager.ClearEntityButtons();
+
+            if (save.kills == null || save.kills.Count == 0)
+            {
+                UpdateEmptinessLabel(true);
+                return;
+            }
+            UpdateEmptinessLabel(false);
+
+            for (int i = 0; i < save.kills.Count; i++)
+                currentEntities.Add(save.kills[i]);
+
+            for (int i = 0; i < buttonsInRow * buttonsInColumn; i++)
+            {
+                if (currentEntities.Count <= i + buttonsInRow * buttonsInColumn * _entityPageNum) continue;
+
+                bMenu.buttonManager.CreateEntityButton(i, currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData, EntityType.Creature);
+            }
+        }
+
+        public void ButtonClicked(int index)
+        {
+            SelectedEntity = index + buttonsInRow * buttonsInColumn * _entityPageNum;
+            bMenu.buttonManager.EntityButtonToggles(SelectedEntity);
+        }
+
+        public void PagerClicked(bool next)
+        {
+            if (next && (_entityPageNum + 1) * buttonsInRow * buttonsInColumn < EntitiesTotal)
+                _entityPageNum++;
+            else _entityPageNum -= (_entityPageNum == 0) ? 0 : 1;
+
+            if (bMenu.slugcatManager.SelectedSlugcat != -1)
+                LoadEntities(bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat]);
+            UpdatePagerButtons();
+            UpdatePageLabel(true);
+        }
+
+        public void UpdatePagerButtons()
+        {
+            bool flag = (_entityPageNum + 1) * buttonsInRow * buttonsInColumn > EntitiesTotal;
+            bMenu.buttonManager.nextButton.button.buttonBehav.greyedOut = flag;
+            bMenu.buttonManager.nextButton.icon.color = flag ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
+            bMenu.buttonManager.prevButton.button.buttonBehav.greyedOut = _entityPageNum == 0;
+            bMenu.buttonManager.prevButton.icon.color = _entityPageNum == 0 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
+        }
+
+        public void SetEntityPageNum(int value) => _entityPageNum = value;
+        public void SetSelectedEntity(int value) => SelectedEntity = value;
+
+        public void Clear()
+        {
+            bMenu.pages[0].RemoveSubObject(_emptinessLabel);
+            _emptinessLabel.RemoveSprites();
+            bMenu.pages[0].RemoveSubObject(_pageLabel);
+            _pageLabel.RemoveSprites();
+            bMenu.buttonManager.ClearEntityButtons();
+        }
+
+        public enum EntityType
+        {
+            Creature,
+            Item,
+            Iterator
+        }
+    }
+}

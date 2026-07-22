@@ -1,7 +1,7 @@
 ﻿using Menu;
 using UnityEngine;
 
-namespace Bestiary.BMenu
+namespace Bestiary.BMenu.Buttons
 {
     public abstract class BestiaryButton
     {
@@ -13,6 +13,7 @@ namespace Bestiary.BMenu
         public string text;
         public FSprite icon;
         protected bool created;
+        public bool IsVisible { get; private set; }
 
         public BestiaryButton(ButtonManager buttonManager, string name, Vector2 nPos, Vector2 nSize, string text, bool hasIcon)
         {
@@ -20,6 +21,7 @@ namespace Bestiary.BMenu
             this.name = name;
             normilizedPos = nPos;
             normilizedSize = nSize;
+            IsVisible = true;
             if (hasIcon)
             {
                 icon = new FSprite(text);
@@ -37,11 +39,15 @@ namespace Bestiary.BMenu
             owner.bMenu.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
         }
 
+        protected virtual void SetIcon()
+        {
+        }
+
         protected virtual void SetSelectables()
         {
         }
 
-        public virtual void SetPosition(Vector2 nPos)
+        public void SetPosition(Vector2 nPos)
         {
             normilizedPos = nPos;
             button.pos = Rectangle.position;
@@ -60,12 +66,22 @@ namespace Bestiary.BMenu
             SetSelectables();
         }
 
-        public virtual void Clear()
+        public void Clear()
         {
             if (!created) return;
             owner.bMenu.pages[0].RemoveSubObject(button);
             button?.RemoveSprites();
             icon?.RemoveFromContainer();
+        }
+
+        public void ChangeVisibility(bool value)
+        {
+            for (int i = 0; i < button.roundedRect.sprites.Length; i++)
+                button.roundedRect.sprites[i].isVisible = value;
+            for (int i = 0; i < button.selectRect.sprites.Length; i++)
+                button.selectRect.sprites[i].isVisible = value;
+            if (icon != null)
+                icon.alpha = value ? 1f : 0f;
         }
     }
 }

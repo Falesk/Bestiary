@@ -1,17 +1,20 @@
 ﻿using Menu;
 using UnityEngine;
+using Bestiary.BMenu.Buttons;
 
 namespace Bestiary.BMenu
 {
     public class BM : Menu.Menu
     {
-        private bool lastPauseButton, exiting;
-        private readonly FSprite backgroundDark;
+        private bool _lastPauseButton, _exiting;
+        private readonly FSprite _backgroundDark;
         public static Vector2 Resolution => RWCustom.Custom.rainWorld.options.ScreenSize;
         public static Vector2 ResolutionOffset => 0.5f * Vector2.right * (1366f - RWCustom.Custom.rainWorld.options.ScreenSize.x);
+
+        public SlugcatManager slugcatManager;
+        public EntityManager entityManager;
         public BoxManager boxManager;
         public ButtonManager buttonManager;
-        public SlugcatManager slugcatManager;
         public CreatureDescriptionPage currentDescription;
 
         public BM(ProcessManager manager) : base(manager, BestiaryEnums.Bestiary)
@@ -21,7 +24,7 @@ namespace Bestiary.BMenu
             pages[0].subObjects.Add(scene);
             mySoundLoopID = SoundID.MENU_Main_Menu_LOOP;
 
-            backgroundDark = new FSprite("pixel")
+            _backgroundDark = new FSprite("pixel")
             {
                 anchorX = 0,
                 anchorY = 0,
@@ -32,16 +35,17 @@ namespace Bestiary.BMenu
                 color = Color.black,
                 alpha = 0.85f
             };
-            pages[0].Container.AddChild(backgroundDark);
+            pages[0].Container.AddChild(_backgroundDark);
 
             slugcatManager = new SlugcatManager(this);
+            slugcatManager.InitSlugcats();
 
             boxManager = new BoxManager(this);
             InitBoxes();
-
             buttonManager = new ButtonManager(this);
-            slugcatManager.InitSlugcats();
             InitButtons();
+
+            entityManager = new EntityManager(this);
         }
 
         private void InitBoxes()
@@ -52,46 +56,67 @@ namespace Bestiary.BMenu
             Vector2 size = 0.95f * (Vector2.one - pos);
             boxManager.CreateBox("descriptionBox", pos, size, Color.black, 0.65f);
 
-            Vector2 pos2 = new Vector2(0.1f, 0.1f);
+            Vector2 pos2 = new Vector2(0.07f, 0.1f);
             Vector2 size2 = new Vector2(pos.x - 0.02f, pos.y + size.y) - pos2;
             boxManager.CreateBox("selectorBox", pos2, size2, Color.black, 0.65f);
+
+            Vector2 p1 = pos2 + new Vector2(0.015f, 0.06f);
+            Vector2 p2 = pos2 + size2 - new Vector2(0.015f, 0.04f);
+            boxManager.CreateBox("entitiesBox", p1, p2 - p1, Color.black, 0f);
+            boxManager.boxes["entitiesBox"].ChangeVisibility(false);
         }
 
         private void InitButtons()
         {
             if (buttonManager == null)
                 return;
-            Vector2 size = new Vector2(0.07f, 0.04f);
-            Vector2 pos = new Vector2(boxManager.boxes["selectorBox"].normilizedPos.x + 0.02f, (boxManager.boxes["selectorBox"].normilizedPos.y - size.y) / 2);
-            buttonManager.CreateBackButton(pos, size);
+            Vector2 pos = new Vector2(boxManager.boxes["selectorBox"].normilizedPos.x + 0.02f, (boxManager.boxes["selectorBox"].normilizedPos.y - BackButton.ButtonSize.y) / 2);
+            buttonManager.CreateBackButton(pos);
 
-            Vector2 offset = new Vector2(0f, -1.25f * SlugcatButton.ButtonSize.y);
-            Vector2 pos2 = new Vector2(boxManager.boxes["selectorBox"].normilizedPos.x, boxManager.boxes["selectorBox"].normilizedPos.y + boxManager.boxes["selectorBox"].normilizedSize.y);
-            pos2 = 0.5f * (pos2 + offset * SlugcatManager.slugsInColumn) + Vector2.left * 0.02f;
-            buttonManager.CreateSlugcatButtons(pos2, offset);
+            Vector2 size = new Vector2(40f, 40f) / Resolution;
+            float gap = 15f / Resolution.y;
+            Vector2 v = boxManager.boxes["selectorBox"].normilizedPos + Vector2.up * boxManager.boxes["selectorBox"].normilizedSize.y;
+            Vector2 vd = Vector2.up * (SlugcatManager.slugsInColumn * size.y + (SlugcatManager.slugsInColumn - 1) * gap);
+            Vector2 firstButtonPos = v - new Vector2(+size.x + gap, 0.5f * (boxManager.boxes["selectorBox"].normilizedSize.y - vd.y) + size.y);
+            Vector2 offset = new Vector2(0f, size.y + gap);
+
+            buttonManager.CreateSlugcatButtons(firstButtonPos, offset);
+
+            if (buttonManager.slugcatButtons.Length >= SlugcatManager.slugsInColumn)
+                buttonManager.CreateSliderButtons();
+
+            buttonManager.CreatePagerButtons();
         }
 
         public override void Update()
         {
             bool flag = RWInput.CheckPauseButton(0);
-            if (flag && !lastPauseButton)
+            if (flag && !_lastPauseButton)
                 Exit();
-            lastPauseButton = flag;
+            _lastPauseButton = flag;
 
             base.Update();
         }
 
         public void Exit()
         {
-            if (exiting)
+            if (_exiting)
                 return;
-            exiting = true;
+            _exiting = true;
             manager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
             PlaySound(SoundID.MENU_Switch_Page_Out);
         }
 
         public override string UpdateInfoText()
         {
+            if (selectedObject is SimpleButton button)
+            {
+                if (button.signalText.Contains("SLUGCAT"))
+                {
+                    int index = int.Parse(button.signalText.Substring(button.signalText.LastIndexOf('_') + 1));
+                    return Plugin.Translate(SlugcatStats.getSlugcatName(slugcatManager.Saves[index].name));
+                }
+            }
             return base.UpdateInfoText();
         }
 
@@ -100,19 +125,41 @@ namespace Bestiary.BMenu
             base.Singal(sender, message);
             if (message == "BACK")
                 buttonManager.backButton.Action();
-            if (message.Contains("SLUGCAT"))
+            else if (message.Contains("SLUGCAT"))
             {
+                entityManager.SetEntityPageNum(0);
+                entityManager.SetSelectedEntity(-1);
                 int index = int.Parse(message.Substring(message.LastIndexOf('_') + 1));
                 buttonManager.slugcatButtons[index].Action();
+                entityManager.UpdatePagerButtons();
+                entityManager.UpdatePageLabel(true);
+            }
+            else if (message.Contains("SLIDER"))
+            {
+                if (message.Substring(message.LastIndexOf('_') + 1) == "DOWN")
+                    buttonManager.downButton.Action();
+                else buttonManager.upButton.Action();
+            }
+            else if (message.Contains("PAGER"))
+            {
+                if (message.Substring(message.LastIndexOf('_') + 1) == "NEXT")
+                    buttonManager.nextButton.Action();
+                else buttonManager.prevButton.Action();
+            }
+            else if (message.Contains("ENTITY"))
+            {
+                int index = int.Parse(message.Substring(message.LastIndexOf('_') + 1));
+                buttonManager.entityButtons[index].Action();
             }
         }
 
         public override void ShutDownProcess()
         {
             base.ShutDownProcess();
-            backgroundDark.RemoveFromContainer();
+            _backgroundDark.RemoveFromContainer();
             boxManager.Clear();
             buttonManager.Clear();
+            entityManager.Clear();
             if (manager.rainWorld.options.musicVolume == 0f && manager.musicPlayer != null)
                 manager.StopSideProcess(manager.musicPlayer);
         }

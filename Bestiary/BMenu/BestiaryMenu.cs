@@ -17,7 +17,7 @@ namespace Bestiary.BMenu
         public RoundedRect descriptionBoxBorder, selectorBoxBorder;
         public CreatureDescriptionPage currentDescription;
         public MenuLabel emptinessLabel, pageLabel;
-        public SlugcatInfo[] slugcats;
+        public SaveInfo[] slugcats;
         public Dictionary<string, Characteristic> characteristics;
         public const float buttonSize = 40f;
         public const int buttonsInColumn = 8, slugsInColumn = 11;
@@ -136,7 +136,7 @@ namespace Bestiary.BMenu
             }
         }
 
-        public void InitCreatures(SlugcatInfo slugcat)
+        public void InitCreatures(SaveInfo slugcat)
         {
             if (entityButtons != null)
             {
@@ -266,7 +266,7 @@ namespace Bestiary.BMenu
         {
             List<SimpleButton> listSlugcatButtons = new List<SimpleButton>();
             List<FSprite> listSlugcatSprites = new List<FSprite>();
-            List<SlugcatInfo> listSlugcats = new List<SlugcatInfo>();
+            List<SaveInfo> listSlugcats = new List<SaveInfo>();
             bool debugOpenAll = debug;
 
             for (int i = 0; i < SlugcatStats.Name.values.Count; i++)
@@ -287,25 +287,25 @@ namespace Bestiary.BMenu
                 };
                 listSlugcatSprites.Add(slugSpite);
 
-                SlugcatInfo slugInfo;
+                SaveInfo slugInfo;
                 if (hasSave)
                 {
                     var kills = manager.rainWorld.progression.GetOrInitiateSaveState(name, null, manager.menuSetup, false).kills;
-                    List<SlugcatInfo.KilledInfo> killedInfo = new List<SlugcatInfo.KilledInfo>();
+                    List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
                     for (int j = 0; j < kills.Count; j++)
-                        killedInfo.Add(SlugcatInfo.KilledInfo.Transform(kills[j]));
+                        killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
                     if (debugOpenAll)
                     {
                         for (int j = 0; j < CreatureTemplate.Type.values.Count; j++)
                         {
                             CreatureTemplate.Type type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(j));
                             if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type))/* && CreatureIsKillable(type)*/)
-                                killedInfo.Add(new SlugcatInfo.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
+                                killedInfo.Add(new SaveInfo.Info.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
                         }
                     }
-                    slugInfo = new SlugcatInfo(name, killedInfo);
+                    slugInfo = new SaveInfo(name, killedInfo);
                 }
-                else slugInfo = new SlugcatInfo(name);
+                else slugInfo = new SaveInfo(name);
                 listSlugcats.Add(slugInfo);
 
                 pages[0].subObjects.Add(slugButton);
@@ -381,7 +381,7 @@ namespace Bestiary.BMenu
             }
         }
 
-        public void UpdateEntitiesWithInfo(SlugcatInfo info)
+        public void UpdateEntitiesWithInfo(SaveInfo info)
         {
             if (info.kills == null) return;
             for (int i = 0; i < entityButtons.Length; i++)
@@ -515,7 +515,7 @@ namespace Bestiary.BMenu
                 entityButtons[choosedEntity].toggled = true;
                 if (choosedSlugcat != -1)
                 {
-                    SlugcatInfo.KilledInfo critInfo = slugcats[choosedSlugcat].kills[choosedEntity];
+                    SaveInfo.Info.KilledInfo critInfo = slugcats[choosedSlugcat].kills[choosedEntity];
                     currentDescription?.Clear();
 
                     Vector2 position = new Vector2(descriprionBoxBack.x, descriprionBoxBack.y);

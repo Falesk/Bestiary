@@ -42,6 +42,7 @@ namespace Bestiary.BMenu
             public RoundedRect boxBorder;
             public Color fillColor;
             public float fillAlpha;
+            private bool _isVisible;
 
             public Box(BoxManager owner, Vector2 nPos, Vector2 nSize)
             {
@@ -60,6 +61,13 @@ namespace Bestiary.BMenu
                     boxBorder.sprites[i].color = fillColor;
                 boxBorder.fillAlpha = fillAlpha;
                 owner.bMenu.pages[0].subObjects.Add(boxBorder);
+            }
+
+            public void ChangeVisibility(bool value)
+            {
+                _isVisible = value;
+                for (int i = 0; i < boxBorder.sprites.Length; i++)
+                    boxBorder.sprites[i].isVisible = _isVisible;
             }
 
             public void Clear()
