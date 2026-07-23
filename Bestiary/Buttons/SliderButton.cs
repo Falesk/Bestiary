@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
+using Bestiary.BMenu;
 
-namespace Bestiary.BMenu.Buttons
+namespace Bestiary.Buttons
 {
     public class SliderButton : BestiaryButton
     {
-        public static Vector2 ButtonSize => new Vector2(25f, 25f) / BM.Resolution;
+        public static Vector2 ButtonSize => new Vector2(25f, 25f) / BestiaryMenu.Resolution;
         public readonly bool down;
 
         public SliderButton(ButtonManager buttonManager, string name, Vector2 nPos) : base(buttonManager, name, nPos, ButtonSize, "Menu_Symbol_Arrow", true)
@@ -20,7 +21,7 @@ namespace Bestiary.BMenu.Buttons
 
         protected override void SetIcon()
         {
-            icon.SetPosition(Rectangle.position + Rectangle.size / 2f - BM.ResolutionOffset);
+            icon.SetPosition(Rectangle.position + Rectangle.size / 2f - BestiaryMenu.ResolutionOffset);
             icon.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
             if (down) icon.rotation = 180f;
         }

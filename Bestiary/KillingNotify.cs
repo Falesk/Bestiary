@@ -10,8 +10,8 @@ namespace Bestiary
         private const float screenEdgeOffsetX = 0.83f;
         private const float screenEdgeOffsetY = 0.15f;
         public Vector2 Pos => new Vector2(
-            BMenu.BM.Resolution.x * screenEdgeOffsetX,
-            BMenu.BM.Resolution.y * screenEdgeOffsetY
+            BMenu.BestiaryMenu.Resolution.x * screenEdgeOffsetX,
+            BMenu.BestiaryMenu.Resolution.y * screenEdgeOffsetY
         );
         public const int LifeSpan = 200;
         public int lifeTime, numberInQueue;

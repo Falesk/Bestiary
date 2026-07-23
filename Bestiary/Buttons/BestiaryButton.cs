@@ -1,13 +1,14 @@
 ﻿using Menu;
 using UnityEngine;
+using Bestiary.BMenu;
 
-namespace Bestiary.BMenu.Buttons
+namespace Bestiary.Buttons
 {
     public abstract class BestiaryButton
     {
         public ButtonManager owner;
         public SimpleButton button;
-        public Rect Rectangle => new Rect(BM.Resolution * normilizedPos + BM.ResolutionOffset, BM.Resolution * normilizedSize);
+        public Rect Rectangle => new Rect(BestiaryMenu.Resolution * normilizedPos + BestiaryMenu.ResolutionOffset, BestiaryMenu.Resolution * normilizedSize);
         public Vector2 normilizedPos, normilizedSize;
         public string name;
         public string text;
@@ -51,7 +52,7 @@ namespace Bestiary.BMenu.Buttons
         {
             normilizedPos = nPos;
             button.pos = Rectangle.position;
-            icon?.SetPosition(Rectangle.position + Rectangle.size / 2f - BM.ResolutionOffset);
+            icon?.SetPosition(Rectangle.position + Rectangle.size / 2f - BestiaryMenu.ResolutionOffset);
         }
 
         public virtual void CreateButton()

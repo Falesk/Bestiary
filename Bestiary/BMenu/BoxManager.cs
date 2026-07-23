@@ -6,10 +6,10 @@ namespace Bestiary.BMenu
 {
     public class BoxManager
     {
-        public BM bMenu;
+        public BestiaryMenu bMenu;
         public Dictionary<string, Box> boxes;
 
-        public BoxManager(BM owner)
+        public BoxManager(BestiaryMenu owner)
         {
             bMenu = owner;
             boxes = new Dictionary<string, Box>();
@@ -37,7 +37,7 @@ namespace Bestiary.BMenu
         public class Box
         {
             public BoxManager owner;
-            public Rect Rectangle => new Rect(BM.Resolution * normilizedPos + BM.ResolutionOffset, BM.Resolution * normilizedSize);
+            public Rect Rectangle => new Rect(BestiaryMenu.Resolution * normilizedPos + BestiaryMenu.ResolutionOffset, BestiaryMenu.Resolution * normilizedSize);
             public Vector2 normilizedPos, normilizedSize;
             public RoundedRect boxBorder;
             public Color fillColor;

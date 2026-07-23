@@ -5,13 +5,13 @@ namespace Bestiary.BMenu
 {
     public class SlugcatManager
     {
-        public BM bMenu;
+        public BestiaryMenu bMenu;
         public SaveInfo[] Saves { get; private set; }
         public int SelectedSlugcat { get; private set; }
         private int _slugcatSlideNum;
         public const int slugsInColumn = 11;
 
-        public SlugcatManager(BM owner)
+        public SlugcatManager(BestiaryMenu owner)
         {
             bMenu = owner;
             SelectedSlugcat = -1;
@@ -19,7 +19,7 @@ namespace Bestiary.BMenu
 
         public void InitSlugcats()
         {
-            bool debugOpenAll = true;
+            bool debugOpenAll = false;
             List<SaveInfo> listSlugcats = new List<SaveInfo>();
 
             for (int i = 0; i < SlugcatStats.Name.values.Count; i++)
@@ -53,7 +53,7 @@ namespace Bestiary.BMenu
             Inv(listSlugcats);
 
             //for (int i = 0; i < 5; i++)
-            //    listSlugcats.Add(new SlugcatInfo(SlugcatStats.Name.White, new List<SlugcatInfo.KilledInfo>()));
+            //    listSlugcats.Add(new SaveInfo(SlugcatStats.Name.White, new List<SaveInfo.Info.KilledInfo>()));
 
             Saves = listSlugcats.ToArray();
         }

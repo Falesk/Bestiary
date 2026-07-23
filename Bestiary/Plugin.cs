@@ -45,11 +45,11 @@ namespace Bestiary
         private void RainWorld_LoadModResources(On.RainWorld.orig_LoadModResources orig, RainWorld self)
         {
             orig(self);
-            string illustrationsDir = AssetManager.ResolveDirectory("crit_illustrations");
+            string illustrationsDir = AssetManager.ResolveDirectory("bestiary_illustrations");
             foreach (string file in Directory.GetFiles(illustrationsDir))
             {
                 string name = $"description_{Path.GetFileNameWithoutExtension(file)}";
-                string imagePath = $"crit_illustrations/{Path.GetFileNameWithoutExtension(file)}";
+                string imagePath = $"bestiary_illustrations/{Path.GetFileNameWithoutExtension(file)}";
                 if (!Futile.atlasManager.DoesContainAtlas(name))
                     Futile.atlasManager.ActuallyLoadAtlasOrImage(name, imagePath, string.Empty);
             }

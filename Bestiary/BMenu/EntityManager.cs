@@ -6,24 +6,24 @@ namespace Bestiary.BMenu
 {
     public class EntityManager
     {
-        public BM bMenu;
+        public BestiaryMenu bMenu;
         public const int buttonsInColumn = 8, buttonsInRow = 4;
         public int PagesTotal => EntitiesTotal / (buttonsInRow * buttonsInColumn) + 1;
         public int CurrentPage => _entityPageNum;
-        public int EntitiesTotal => currentEntities.Count;
+        public int EntitiesTotal => _currentEntities.Count;
         public int SelectedEntity { get; private set; }
 
         private int _entityPageNum;
         private readonly MenuLabel _emptinessLabel, _pageLabel;
-        private readonly List<SaveInfo.Info> currentEntities;
+        private readonly List<SaveInfo.Info> _currentEntities;
 
-        public EntityManager(BM owner)
+        public EntityManager(BestiaryMenu owner)
         {
             bMenu = owner;
             SelectedEntity = -1;
             _entityPageNum = 0;
 
-            currentEntities = new List<SaveInfo.Info>();
+            _currentEntities = new List<SaveInfo.Info>();
 
             Rect box = bMenu.boxManager.boxes["selectorBox"].Rectangle;
             Vector2 labelPos = box.position + box.size * 0.5f;
@@ -39,7 +39,8 @@ namespace Bestiary.BMenu
             UpdatePageLabel(true);
         }
 
-        public SaveInfo.Info GetEntityByIndex(int index) => currentEntities[index];
+        public SaveInfo.Info GetEntityByIndex(int index) => _currentEntities[index + buttonsInRow * buttonsInColumn * _entityPageNum];
+        public SaveInfo.Info GetEntityByRealIndex(int index) => _currentEntities[index];
 
         public void UpdateEmptinessLabel(bool show) => _emptinessLabel.text = show ? Plugin.Translate("[ No Entries ]") : string.Empty;
         public void UpdatePageLabel(bool show) => _pageLabel.text = show ?
@@ -49,7 +50,7 @@ namespace Bestiary.BMenu
 
         public void LoadEntities(SaveInfo save)
         {
-            currentEntities.Clear();
+            _currentEntities.Clear();
             bMenu.buttonManager.ClearEntityButtons();
 
             if (save.kills == null || save.kills.Count == 0)
@@ -60,13 +61,13 @@ namespace Bestiary.BMenu
             UpdateEmptinessLabel(false);
 
             for (int i = 0; i < save.kills.Count; i++)
-                currentEntities.Add(save.kills[i]);
+                _currentEntities.Add(save.kills[i]);
 
             for (int i = 0; i < buttonsInRow * buttonsInColumn; i++)
             {
-                if (currentEntities.Count <= i + buttonsInRow * buttonsInColumn * _entityPageNum) continue;
+                if (_currentEntities.Count <= i + buttonsInRow * buttonsInColumn * _entityPageNum) continue;
 
-                bMenu.buttonManager.CreateEntityButton(i, currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData, EntityType.Creature);
+                bMenu.buttonManager.CreateEntityButton(i, _currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData, EntityType.Creature);
             }
         }
 
@@ -112,8 +113,10 @@ namespace Bestiary.BMenu
         public enum EntityType
         {
             Creature,
+            Slugcat,
             Item,
-            Iterator
+            Iterator,
+            None
         }
     }
 }

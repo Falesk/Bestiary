@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
+using Bestiary.BMenu;
 
-namespace Bestiary.BMenu.Buttons
+namespace Bestiary.Buttons
 {
     public class BackButton : BestiaryButton
     {
-        public static Vector2 ButtonSize => new Vector2(110f, 30f) / BM.Resolution;
+        public static Vector2 ButtonSize => new Vector2(110f, 30f) / BestiaryMenu.Resolution;
 
         public BackButton(ButtonManager buttonManager, Vector2 nPos)
-            : base(buttonManager, "BACK", nPos, ButtonSize, buttonManager.bMenu.Translate("BACK"), false)
+            : base(buttonManager, "BACK", nPos, ButtonSize, Plugin.Translate("BACK"), false)
         {
         }
 

@@ -90,25 +90,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BestiaryEnums.cs" />
-    <Compile Include="BMenu\Buttons\BackButton.cs" />
-    <Compile Include="BMenu\Buttons\BestiaryButton.cs" />
+    <Compile Include="BMenu\DescriptionPage.cs" />
+    <Compile Include="BMenu\ICharacteristic.cs" />
+    <Compile Include="Buttons\BackButton.cs" />
+    <Compile Include="Buttons\BestiaryButton.cs" />
     <Compile Include="BMenu\BestiaryMenu.cs" />
-    <Compile Include="BMenu\BM.cs" />
     <Compile Include="BMenu\BoxManager.cs" />
-    <Compile Include="BMenu\Buttons\ButtonManager.cs" />
-    <Compile Include="BMenu\Characteristic.cs" />
-    <Compile Include="BMenu\Buttons\EntityButton.cs" />
+    <Compile Include="Buttons\ButtonManager.cs" />
+    <Compile Include="BMenu\CreatureCharacteristic.cs" />
+    <Compile Include="Buttons\EntityButton.cs" />
     <Compile Include="BMenu\EntityManager.cs" />
-    <Compile Include="BMenu\Buttons\PagerButton.cs" />
-    <Compile Include="BMenu\Buttons\SliderButton.cs" />
-    <Compile Include="BMenu\Buttons\SlugcatButton.cs" />
+    <Compile Include="Buttons\PagerButton.cs" />
+    <Compile Include="Buttons\SliderButton.cs" />
+    <Compile Include="Buttons\SlugcatButton.cs" />
     <Compile Include="BMenu\SaveInfo.cs" />
     <Compile Include="BMenu\SlugcatManager.cs" />
     <Compile Include="CustomData.cs" />
     <Compile Include="HooksKillingNotify.cs" />
     <Compile Include="HooksMainMenu.cs" />
     <Compile Include="KillingNotify.cs" />
-    <Compile Include="BMenu\CreatureDescriptionPage.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

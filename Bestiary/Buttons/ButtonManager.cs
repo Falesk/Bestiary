@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Bestiary.BMenu;
 
-namespace Bestiary.BMenu.Buttons
+namespace Bestiary.Buttons
 {
     public class ButtonManager
     {
-        public BM bMenu;
+        public BestiaryMenu bMenu;
         public BackButton backButton;
         public SlugcatButton[] slugcatButtons;
         public List<EntityButton> entityButtons;
@@ -13,7 +14,7 @@ namespace Bestiary.BMenu.Buttons
         public PagerButton nextButton, prevButton;
         public Vector2 firstSlugcatButtonPos, slugcatOffset;
 
-        public ButtonManager(BM owner)
+        public ButtonManager(BestiaryMenu owner)
         {
             bMenu = owner;
             entityButtons = new List<EntityButton>();
@@ -28,11 +29,11 @@ namespace Bestiary.BMenu.Buttons
         public void CreatePagerButtons()
         {
             Vector2 center = bMenu.boxManager.boxes["selectorBox"].normilizedPos + 0.75f * Vector2.right * bMenu.boxManager.boxes["selectorBox"].normilizedSize.x;
-            center.y += 10f / BM.Resolution.y;
+            center.y += 10f / BestiaryMenu.Resolution.y;
 
-            nextButton = new PagerButton(this, "PAGER_NEXT", center + Vector2.right * 20f / BM.Resolution.x);
+            nextButton = new PagerButton(this, "PAGER_NEXT", center + Vector2.right * 20f / BestiaryMenu.Resolution.x);
             nextButton.CreateButton();
-            prevButton = new PagerButton(this, "PAGER_PREV", center + Vector2.left * 20f / BM.Resolution.x);
+            prevButton = new PagerButton(this, "PAGER_PREV", center + Vector2.left * 20f / BestiaryMenu.Resolution.x);
             prevButton.CreateButton();
 
             nextButton.UpdateSelectables();
@@ -80,7 +81,7 @@ namespace Bestiary.BMenu.Buttons
 
             string idName = entityType == EntityManager.EntityType.Creature ? $"ENTITY_CRIT_{index}" : $"ENTITY_ITEM_{index}";
 
-            EntityButton button = new EntityButton(this, idName, nPos, icon, entityType);
+            EntityButton button = new EntityButton(this, idName, nPos, icon);
             button.CreateButton();
             entityButtons.Add(button);
         }
