@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Bestiary
@@ -14,8 +13,6 @@ namespace Bestiary
         public const string Version = "1.0";
         public static ManualLogSource logger;
         private static bool loaded = false;
-
-        public Dictionary<string, string> entityDescriptions;
 
         public void Awake()
         {

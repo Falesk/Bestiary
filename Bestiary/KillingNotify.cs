@@ -1,6 +1,9 @@
 ﻿using RWCustom;
 using System.Collections.Generic;
 using UnityEngine;
+using Watcher;
+using MoreSlugcats;
+using System.Linq;
 
 namespace Bestiary
 {
@@ -101,7 +104,8 @@ namespace Bestiary
             };
 
             string creatureName = Plugin.Translate(Plugin.ResolveCreatureName(creatureType.ToString()));
-            killText = Plugin.Translate("$ was slain").Replace("$", creatureName);
+            string gnd = fGendCreaturesRuLocale.Contains(creatureType) ? "f" : "m";
+            killText = Plugin.Translate($"{gnd}$ was slain").Replace("$", creatureName);
             killLabel = new FLabel(Custom.GetFont(), string.Empty)
             {
                 color = Color.white,
@@ -191,6 +195,43 @@ namespace Bestiary
             killLabel.RemoveFromContainer();
             newContatiner.AddChild(killLabel);
         }
+
+        public static CreatureTemplate.Type[] fGendCreaturesRuLocale = new CreatureTemplate.Type[]
+        {
+            DLCSharedEnums.CreatureTemplateType.AquaCenti,
+            DLCSharedEnums.CreatureTemplateType.BigJelly,
+            WatcherEnums.CreatureTemplateType.BigMoth,
+            CreatureTemplate.Type.BigNeedleWorm,
+            WatcherEnums.CreatureTemplateType.BigSandGrub,
+            CreatureTemplate.Type.Centipede,
+            CreatureTemplate.Type.Centiwing,
+            CreatureTemplate.Type.CicadaA,
+            CreatureTemplate.Type.CicadaB,
+            CreatureTemplate.Type.DropBug,
+            CreatureTemplate.Type.Fly,
+            WatcherEnums.CreatureTemplateType.Frog,
+            CreatureTemplate.Type.GarbageWorm,
+            CreatureTemplate.Type.JetFish,
+            DLCSharedEnums.CreatureTemplateType.JungleLeech,
+            CreatureTemplate.Type.LanternMouse,
+            CreatureTemplate.Type.Leech,
+            DLCSharedEnums.CreatureTemplateType.MotherSpider,
+            WatcherEnums.CreatureTemplateType.MothGrub,
+            WatcherEnums.CreatureTemplateType.Rat,
+            CreatureTemplate.Type.RedCentipede,
+            CreatureTemplate.Type.Salamander,
+            WatcherEnums.CreatureTemplateType.SandGrub,
+            CreatureTemplate.Type.SeaLeech,
+            CreatureTemplate.Type.SmallCentipede,
+            WatcherEnums.CreatureTemplateType.SmallMoth,
+            CreatureTemplate.Type.SmallNeedleWorm,
+            CreatureTemplate.Type.Snail,
+            WatcherEnums.CreatureTemplateType.Tardigrade,
+            CreatureTemplate.Type.TentaclePlant,
+            DLCSharedEnums.CreatureTemplateType.TerrorLongLegs,
+            CreatureTemplate.Type.VultureGrub,
+            DLCSharedEnums.CreatureTemplateType.Yeek
+        };
 
         private enum AnimationType
         {
