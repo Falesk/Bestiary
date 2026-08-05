@@ -9,6 +9,7 @@ namespace Bestiary.BMenu
         public BestiaryMenu bMenu;
         public string name;
         public FSprite icon, image;
+        public FSprite[] foodMeter;
         private MenuLabel _entityName, _entityDescriptionLabel, _emptinessLabel;
         public readonly EntityManager.EntityType entityType;
         public MenuLabel[] entityDescription, entityCharacteristicLabels;
@@ -27,6 +28,12 @@ namespace Bestiary.BMenu
                     InitCreaturePage(iconData);
                     break;
                 case EntityManager.EntityType.Slugcat:
+                    SlugcatStats.Name name = bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat].name;
+                    SaveState save = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                    int deaths = save.deathPersistentSaveData.deaths;
+                    int cycles = save.cycleNumber;
+                    characteristic = new SlugcatCharacteristic(name, deaths, cycles - 1);
+                    InitSlugcatPage();
                     break;
                 case EntityManager.EntityType.Item:
                     break;
@@ -36,6 +43,26 @@ namespace Bestiary.BMenu
                     InitEmptiness();
                     break;
             }
+        }
+
+        private void InitSlugcatPage()
+        {
+            SlugcatCharacteristic sChar = characteristic as SlugcatCharacteristic;
+            name = sChar.slugcat.ToString();
+            icon = new FSprite("Kill_Slugcat")
+            {
+                color = PlayerGraphics.DefaultSlugcatColor(sChar.slugcat),
+                scale = 2
+            };
+            icon.SetPosition(DescBox.position + new Vector2(50f, DescBox.size.y - 50f) - BestiaryMenu.ResolutionOffset);
+            bMenu.pages[0].Container.AddChild(icon);
+
+            Vector2 pos = DescBox.position + new Vector2(100f, DescBox.size.y - 50f);
+            _entityName = new MenuLabel(bMenu, bMenu.pages[0], Plugin.Translate(SlugcatStats.getSlugcatName(sChar.slugcat)), pos, Vector2.zero, true);
+            _entityName.label.alignment = FLabelAlignment.Left;
+            bMenu.pages[0].subObjects.Add(_entityName);
+
+            GetGeneralInfo();
         }
 
         private void InitCreaturePage(IconSymbol.IconSymbolData iconData)
@@ -54,6 +81,11 @@ namespace Bestiary.BMenu
             _entityName.label.alignment = FLabelAlignment.Left;
             bMenu.pages[0].subObjects.Add(_entityName);
 
+            GetGeneralInfo();
+        }
+
+        private void GetGeneralInfo()
+        {
             Vector2 descrPos = DescBox.position + DescBox.size.x / 2f * Vector2.right + DescBox.size.y / 2.2f * Vector2.up;
             _entityDescriptionLabel = new MenuLabel(bMenu, bMenu.pages[0], Plugin.Translate("b-Description"), descrPos, Vector2.one, true);
             bMenu.pages[0].subObjects.Add(_entityDescriptionLabel);
@@ -70,7 +102,7 @@ namespace Bestiary.BMenu
             Vector2 nSize = 0.9f * (bMenu.boxManager.boxes["descriptionBox"].normilizedPos + bMenu.boxManager.boxes["descriptionBox"].normilizedSize - nPos);
             bMenu.boxManager.CreateBox("imageBox", nPos, nSize, new Color(0.6f, 0.6f, 0.6f), 0.65f);
 
-            string imageName = $"description_{name.ToLower()}";
+            string imageName = $"bestiary_{name.ToLower()}";
             if (Futile.atlasManager._allElementsByName.TryGetValue(imageName, out FAtlasElement element))
             {
                 image = new FSprite(element);
@@ -92,9 +124,39 @@ namespace Bestiary.BMenu
             for (int i = 0; i < lines.Length; i++)
             {
                 Vector2 pos = DescBox.position + new Vector2(30f, DescBox.size.y - 100f - 20f * i);
+                if (lines[i] != null && lines[i] == string.Empty)
+                    InitFoodPips(pos);
                 entityCharacteristicLabels[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i], pos, Vector2.one, false);
                 entityCharacteristicLabels[i].label.alignment = FLabelAlignment.Left;
                 bMenu.pages[0].subObjects.Add(entityCharacteristicLabels[i]);
+            }
+        }
+
+        private void InitFoodPips(Vector2 pos)
+        {
+            if (characteristic is SlugcatCharacteristic sChar && foodMeter == null)
+            {
+                foodMeter = new FSprite[sChar.maxFood * 2 + 1];
+                for (int i = 0; i < sChar.maxFood; i++)
+                {
+                    foodMeter[2 * i] = new FSprite("FoodCircleA");
+                    foodMeter[2 * i + 1] = new FSprite("FoodCircleB");
+
+                    Vector2 offset = Vector2.right * 27f * i + new Vector2(1f, -0.75f) * foodMeter[2 * i].element.sourcePixelSize * 0.5f - BestiaryMenu.ResolutionOffset;
+                    offset += i >= sChar.minFood ? Vector2.right * 10f : Vector2.zero;
+                    foodMeter[2 * i].SetPosition(pos + offset);
+                    foodMeter[2 * i + 1].SetPosition(pos + offset);
+                    bMenu.pages[0].Container.AddChild(foodMeter[2 * i]);
+                    bMenu.pages[0].Container.AddChild(foodMeter[2 * i + 1]);
+                }
+
+                foodMeter[foodMeter.Length - 1] = new FSprite("pixel")
+                {
+                    scaleY = 30,
+                    scaleX = 3
+                };
+                foodMeter[foodMeter.Length - 1].SetPosition(pos - BestiaryMenu.ResolutionOffset + sChar.minFood * Vector2.right * 27f + Vector2.right * 4f + Vector2.down * 0.75f * 0.5f * foodMeter[0].element.sourcePixelSize.y);
+                bMenu.pages[0].Container.AddChild(foodMeter[foodMeter.Length - 1]);
             }
         }
 
@@ -108,20 +170,37 @@ namespace Bestiary.BMenu
 
         private void GetDescription()
         {
+            if (Inv()) return;
+
             string[] lines;
-            string path = AssetManager.ResolveFilePath($"{RWCustom.Custom.rainWorld.inGameTranslator.SpecificTextFolderDirectory()}{Path.DirectorySeparatorChar}{name.ToLower()}.txt");
-            if (File.Exists(path))
-                lines = File.ReadAllText(path).Split(new string[] { "<LINE>" }, System.StringSplitOptions.None);
-            else lines = new string[] { "CAN'T FIND A CREATURE DESCRIPTION" };
+            string description = Plugin.Translate($"bDscr-{name.ToLower()}");
+            if (description == $"bDscr-{name.ToLower()}")
+                lines = new string[] { "CAN'T FIND AN ENTITY DESCRIPTION" };
+            else lines = description.Split(new string[] { "<LINE>" }, System.StringSplitOptions.None);
 
             entityDescription = new MenuLabel[lines.Length];
             for (int i = 0; i < lines.Length; i++)
             {
-                Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 30f * (i + 1.5f));
+                Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 27f * (i + 1.25f));
                 entityDescription[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i], pos, Vector2.one, false);
                 entityDescription[i].label.alignment = FLabelAlignment.Left;
                 bMenu.pages[0].subObjects.Add(entityDescription[i]);
             }
+        }
+
+        private bool Inv()
+        {
+            if (name != MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value)
+                return false;
+            string line = Plugin.Translate("Thanks Andrew.");
+            entityDescription = new MenuLabel[1];
+
+            Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 45f);
+            entityDescription[0] = new MenuLabel(bMenu, bMenu.pages[0], line, pos, Vector2.one, false);
+            entityDescription[0].label.alignment = FLabelAlignment.Left;
+            bMenu.pages[0].subObjects.Add(entityDescription[0]);
+
+            return true;
         }
 
         public void Clear()
@@ -150,17 +229,26 @@ namespace Bestiary.BMenu
                 bMenu.boxManager.boxes.Remove("imageBox");
             }
             if (entityDescription != null)
+            {
                 for (int i = 0; i < entityDescription.Length; i++)
                 {
                     bMenu.pages[0].RemoveSubObject(entityDescription[i]);
                     entityDescription[i].RemoveSprites();
                 }
+            }
             if (entityCharacteristicLabels != null)
+            {
                 for (int i = 0; i < entityCharacteristicLabels.Length; i++)
                 {
                     bMenu.pages[0].RemoveSubObject(entityCharacteristicLabels[i]);
                     entityCharacteristicLabels[i].RemoveSprites();
                 }
+            }
+            if (foodMeter != null)
+            {
+                for (int i = 0; i < foodMeter.Length; i++)
+                    foodMeter[i]?.RemoveFromContainer();
+            }
         }
     }
 }

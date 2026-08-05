@@ -2,7 +2,6 @@
 using BepInEx.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Bestiary
@@ -15,6 +14,8 @@ namespace Bestiary
         public const string Version = "1.0";
         public static ManualLogSource logger;
         private static bool loaded = false;
+
+        public Dictionary<string, string> entityDescriptions;
 
         public void Awake()
         {
@@ -45,23 +46,17 @@ namespace Bestiary
         private void RainWorld_LoadModResources(On.RainWorld.orig_LoadModResources orig, RainWorld self)
         {
             orig(self);
-            string illustrationsDir = AssetManager.ResolveDirectory("bestiary_illustrations");
-            foreach (string file in Directory.GetFiles(illustrationsDir))
-            {
-                string name = $"description_{Path.GetFileNameWithoutExtension(file)}";
-                string imagePath = $"bestiary_illustrations/{Path.GetFileNameWithoutExtension(file)}";
-                if (!Futile.atlasManager.DoesContainAtlas(name))
-                    Futile.atlasManager.ActuallyLoadAtlasOrImage(name, imagePath, string.Empty);
-            }
+            string name = "bestiaryAtlas";
+            string path = "bestiary_illustrations/bestiaryAtlas";
+            if (!Futile.atlasManager.DoesContainAtlas(name))
+                Futile.atlasManager.ActuallyLoadAtlasOrImage(name, path, path);
         }
 
         private void RainWorld_UnloadResources(On.RainWorld.orig_UnloadResources orig, RainWorld self)
         {
             orig(self);
-            List<string> names = new List<string>();
-            foreach (string name in Futile.atlasManager._allElementsByName.Keys)
-                if (name.StartsWith("description_")) names.Add(name);
-            foreach (string name in names)
+            string name = "bestiaryAtlas";
+            if (Futile.atlasManager.DoesContainAtlas(name))
                 Futile.atlasManager.ActuallyUnloadAtlasOrImage(name);
         }
 
@@ -69,7 +64,12 @@ namespace Bestiary
         {
             orig(self, newlyDisabledMods);
             if (newlyDisabledMods.Any(mod => mod.id == ID))
+            {
                 BestiaryEnums.UnregisterValues();
+                string name = "bestiaryAtlas";
+                if (Futile.atlasManager.DoesContainAtlas(name))
+                    Futile.atlasManager.ActuallyUnloadAtlasOrImage(name);
+            }
         }
 
         public static string Translate(string text)

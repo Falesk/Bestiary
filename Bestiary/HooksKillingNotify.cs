@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using UnityEngine;
 
 namespace Bestiary
 {
@@ -24,7 +23,7 @@ namespace Bestiary
         private static void Room_CleanOutObjectNotInThisRoom(On.Room.orig_CleanOutObjectNotInThisRoom orig, Room self, UpdatableAndDeletable obj)
         {
             if (obj is KillingNotify notify && self.GetData() is CustomData.RoomData roomData)
-                roomData.notifies.Remove(notify);
+                roomData.notifies?.Remove(notify);
             orig(self, obj);
         }
 
@@ -34,7 +33,7 @@ namespace Bestiary
             if (obj is KillingNotify notify && self.GetData() is CustomData.RoomData roomData)
             {
                 for (int i = 0; i < roomData.notifies.Count; i++)
-                    roomData.notifies[i].AscendNotify();
+                    roomData.notifies[i]?.AscendNotify();
                 roomData.notifies.Add(notify);
             }
         }
@@ -57,8 +56,8 @@ namespace Bestiary
 
         private static void SocialEventRecognizer_Killing(On.SocialEventRecognizer.orig_Killing orig, SocialEventRecognizer self, Creature killer, Creature victim)
         {
-            if (killer is Player player && player.SessionRecord != null && player.room.GetData() is CustomData.RoomData roomData &&
-                !RWCustom.Custom.rainWorld.progression.currentSaveState.kills.Any(x => x.Key.critType == victim.Template.type))
+            if (killer is Player player && player.SessionRecord != null && !RWCustom.Custom.rainWorld.progression.currentSaveState.kills.Any(x => x.Key.critType == victim.Template.type)
+                && !player.SessionRecord.kills.Any(x => x.symbolData.critType == victim.Template.type))
             {
                 player.room.AddObject(new KillingNotify(player.room, victim.Template.type));
             }

@@ -92,6 +92,7 @@
     <Compile Include="BestiaryEnums.cs" />
     <Compile Include="BMenu\DescriptionPage.cs" />
     <Compile Include="BMenu\ICharacteristic.cs" />
+    <Compile Include="BMenu\SlugcatCharacteristic.cs" />
     <Compile Include="Buttons\BackButton.cs" />
     <Compile Include="Buttons\BestiaryButton.cs" />
     <Compile Include="BMenu\BestiaryMenu.cs" />
