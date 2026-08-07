@@ -81,7 +81,7 @@ namespace Bestiary.Buttons
 
             string idName = entityType == EntityManager.EntityType.Creature ? $"ENTITY_CRIT_{index}" : $"ENTITY_ITEM_{index}";
 
-            EntityButton button = new EntityButton(this, idName, nPos, icon);
+            EntityButton button = new EntityButton(this, idName, nPos, icon, entityType);
             button.CreateButton();
             entityButtons.Add(button);
         }

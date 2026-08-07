@@ -107,8 +107,10 @@
     <Compile Include="BMenu\SaveInfo.cs" />
     <Compile Include="BMenu\SlugcatManager.cs" />
     <Compile Include="CustomData.cs" />
+    <Compile Include="HooksGeneral.cs" />
     <Compile Include="HooksKillingNotify.cs" />
     <Compile Include="HooksMainMenu.cs" />
+    <Compile Include="HooksSleepMenu.cs" />
     <Compile Include="KillingNotify.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

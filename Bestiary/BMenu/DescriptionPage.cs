@@ -16,6 +16,9 @@ namespace Bestiary.BMenu
         public Rect DescBox => bMenu.boxManager.boxes["descriptionBox"].Rectangle;
         public ICharacteristic characteristic;
 
+        private MenuIllustration inv;
+        private int invCounter, invFrame;
+
         public DescriptionPage(BestiaryMenu owner, IconSymbol.IconSymbolData iconData, EntityManager.EntityType type)
         {
             bMenu = owner;
@@ -36,6 +39,8 @@ namespace Bestiary.BMenu
                     InitSlugcatPage();
                     break;
                 case EntityManager.EntityType.Item:
+                    characteristic = null;
+                    InitItemPage();
                     break;
                 case EntityManager.EntityType.Iterator:
                     break;
@@ -43,6 +48,27 @@ namespace Bestiary.BMenu
                     InitEmptiness();
                     break;
             }
+        }
+
+        private void InitItemPage()
+        {
+            if (!(bMenu.entityManager.GetEntityByRealIndex(bMenu.entityManager.SelectedEntity) is SaveInfo.Info.ItemInfo info)) return;
+
+            name = info.iconData.itemType.ToString();
+            icon = new FSprite(ItemSymbol.SpriteNameForItem(info.iconData.itemType, info.iconData.intData))
+            {
+                color = ItemSymbol.ColorForItem(info.iconData.itemType, info.iconData.intData),
+                scale = 2
+            };
+            icon.SetPosition(DescBox.position + new Vector2(50f, DescBox.size.y - 50f) - BestiaryMenu.ResolutionOffset);
+            bMenu.pages[0].Container.AddChild(icon);
+
+            Vector2 pos = DescBox.position + new Vector2(100f, DescBox.size.y - 50f);
+            _entityName = new MenuLabel(bMenu, bMenu.pages[0], Plugin.ResolveItemName(name), pos, Vector2.zero, true);
+            _entityName.label.alignment = FLabelAlignment.Left;
+            bMenu.pages[0].subObjects.Add(_entityName);
+
+            GetGeneralInfo();
         }
 
         private void InitSlugcatPage()
@@ -109,10 +135,45 @@ namespace Bestiary.BMenu
                 image.scale = Mathf.Min(0.9f * bMenu.boxManager.boxes["imageBox"].Rectangle.size.x / image.element.sourceSize.x,
                     0.9f * bMenu.boxManager.boxes["imageBox"].Rectangle.size.y / image.element.sourceSize.y);
             }
+            else if (IsInv)
+            {
+                InvImg();
+                return;
+            }
             else image = new FSprite("Sandbox_QuestionMark") { color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.Black), scale = 2 };
 
             image.SetPosition(bMenu.boxManager.boxes["imageBox"].Rectangle.center - BestiaryMenu.ResolutionOffset);
             bMenu.pages[0].Container.AddChild(image);
+        }
+
+        private void InvImg()
+        {
+            Vector2 pos = bMenu.boxManager.boxes["imageBox"].Rectangle.center;
+            inv = new MenuIllustration(bMenu, bMenu.pages[0], "Content", "blush_001", pos, true, true);
+            invFrame = 1;
+            bMenu.pages[0].subObjects.Add(inv);
+        }
+
+        public void UpdateImage()
+        {
+            if (!IsInv)
+                return;
+
+            invCounter++;
+            if (invCounter >= 5)
+            {
+                invCounter = 0;
+                invFrame++;
+                string num = invFrame.ToString("000");
+                if (!File.Exists(AssetManager.ResolveFilePath($"Content/blush_{num}.png")))
+                {
+                    invFrame = 1;
+                    num = "001";
+                }
+                inv.fileName = $"blush_{num}";
+                inv.LoadFile("Content");
+                inv.sprite.SetElementByName(inv.fileName);
+            }
         }
 
         public void GenerateCharacteristicLabels()
@@ -124,7 +185,7 @@ namespace Bestiary.BMenu
             for (int i = 0; i < lines.Length; i++)
             {
                 Vector2 pos = DescBox.position + new Vector2(30f, DescBox.size.y - 100f - 20f * i);
-                if (lines[i] != null && lines[i] == string.Empty)
+                if (lines[i] != null && lines[i] == string.Empty && foodMeter == null && characteristic is SlugcatCharacteristic)
                     InitFoodPips(pos);
                 entityCharacteristicLabels[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i], pos, Vector2.one, false);
                 entityCharacteristicLabels[i].label.alignment = FLabelAlignment.Left;
@@ -134,30 +195,29 @@ namespace Bestiary.BMenu
 
         private void InitFoodPips(Vector2 pos)
         {
-            if (characteristic is SlugcatCharacteristic sChar && foodMeter == null)
+            SlugcatCharacteristic sChar = characteristic as SlugcatCharacteristic;
+
+            foodMeter = new FSprite[sChar.maxFood * 2 + 1];
+            for (int i = 0; i < sChar.maxFood; i++)
             {
-                foodMeter = new FSprite[sChar.maxFood * 2 + 1];
-                for (int i = 0; i < sChar.maxFood; i++)
-                {
-                    foodMeter[2 * i] = new FSprite("FoodCircleA");
-                    foodMeter[2 * i + 1] = new FSprite("FoodCircleB");
+                foodMeter[2 * i] = new FSprite("FoodCircleA");
+                foodMeter[2 * i + 1] = new FSprite("FoodCircleB");
 
-                    Vector2 offset = Vector2.right * 27f * i + new Vector2(1f, -0.75f) * foodMeter[2 * i].element.sourcePixelSize * 0.5f - BestiaryMenu.ResolutionOffset;
-                    offset += i >= sChar.minFood ? Vector2.right * 10f : Vector2.zero;
-                    foodMeter[2 * i].SetPosition(pos + offset);
-                    foodMeter[2 * i + 1].SetPosition(pos + offset);
-                    bMenu.pages[0].Container.AddChild(foodMeter[2 * i]);
-                    bMenu.pages[0].Container.AddChild(foodMeter[2 * i + 1]);
-                }
-
-                foodMeter[foodMeter.Length - 1] = new FSprite("pixel")
-                {
-                    scaleY = 30,
-                    scaleX = 3
-                };
-                foodMeter[foodMeter.Length - 1].SetPosition(pos - BestiaryMenu.ResolutionOffset + sChar.minFood * Vector2.right * 27f + Vector2.right * 4f + Vector2.down * 0.75f * 0.5f * foodMeter[0].element.sourcePixelSize.y);
-                bMenu.pages[0].Container.AddChild(foodMeter[foodMeter.Length - 1]);
+                Vector2 offset = Vector2.right * 27f * i + new Vector2(1f, -0.75f) * foodMeter[2 * i].element.sourcePixelSize * 0.5f - BestiaryMenu.ResolutionOffset;
+                offset += i >= sChar.minFood ? Vector2.right * 10f : Vector2.zero;
+                foodMeter[2 * i].SetPosition(pos + offset);
+                foodMeter[2 * i + 1].SetPosition(pos + offset);
+                bMenu.pages[0].Container.AddChild(foodMeter[2 * i]);
+                bMenu.pages[0].Container.AddChild(foodMeter[2 * i + 1]);
             }
+
+            foodMeter[foodMeter.Length - 1] = new FSprite("pixel")
+            {
+                scaleY = 30,
+                scaleX = 3
+            };
+            foodMeter[foodMeter.Length - 1].SetPosition(pos - BestiaryMenu.ResolutionOffset + sChar.minFood * Vector2.right * 27f + Vector2.right * 4f + Vector2.down * 0.75f * 0.5f * foodMeter[0].element.sourcePixelSize.y);
+            bMenu.pages[0].Container.AddChild(foodMeter[foodMeter.Length - 1]);
         }
 
         private void InitEmptiness()
@@ -170,7 +230,11 @@ namespace Bestiary.BMenu
 
         private void GetDescription()
         {
-            if (Inv()) return;
+            if (IsInv)
+            {
+                Inv();
+                return;
+            }
 
             string[] lines;
             string description = Plugin.Translate($"bDscr-{name.ToLower()}");
@@ -182,25 +246,24 @@ namespace Bestiary.BMenu
             for (int i = 0; i < lines.Length; i++)
             {
                 Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 27f * (i + 1.25f));
-                entityDescription[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i], pos, Vector2.one, false);
+                entityDescription[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i].Trim(), pos, Vector2.one, false);
                 entityDescription[i].label.alignment = FLabelAlignment.Left;
                 bMenu.pages[0].subObjects.Add(entityDescription[i]);
             }
         }
 
-        private bool Inv()
+        private bool IsInv => name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value;
+
+        private void Inv()
         {
-            if (name != MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value)
-                return false;
             string line = Plugin.Translate("Thanks Andrew.");
             entityDescription = new MenuLabel[1];
 
             Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 45f);
             entityDescription[0] = new MenuLabel(bMenu, bMenu.pages[0], line, pos, Vector2.one, false);
             entityDescription[0].label.alignment = FLabelAlignment.Left;
+            entityDescription[0].label.color = Color.red;
             bMenu.pages[0].subObjects.Add(entityDescription[0]);
-
-            return true;
         }
 
         public void Clear()
@@ -248,6 +311,11 @@ namespace Bestiary.BMenu
             {
                 for (int i = 0; i < foodMeter.Length; i++)
                     foodMeter[i]?.RemoveFromContainer();
+            }
+            if (inv != null)
+            {
+                bMenu.pages[0].RemoveSubObject(inv);
+                inv.RemoveSprites();
             }
         }
     }

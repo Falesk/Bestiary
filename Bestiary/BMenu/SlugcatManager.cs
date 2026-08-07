@@ -32,7 +32,8 @@ namespace Bestiary.BMenu
                 SaveInfo saveInfo;
                 if (hasSave)
                 {
-                    var kills = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false).kills;
+                    SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                    var kills = saveState.kills;
                     List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
                     for (int j = 0; j < kills.Count; j++)
                         killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
@@ -45,17 +46,35 @@ namespace Bestiary.BMenu
                                 killedInfo.Add(new SaveInfo.Info.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
                         }
                     }
-                    saveInfo = new SaveInfo(name, killedInfo);
+
+                    var items = saveState.progression.miscProgressionData.GetData().savedObjects;
+                    List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
+                    for (int j = 0; j < items.Count; j++)
+                        itemInfo.Add(SaveInfo.Info.ItemInfo.Transform(items[j]));
+                    if (debugOpenAll)
+                    {
+                        for (int j = 0; j < AbstractPhysicalObject.AbstractObjectType.values.Count; j++)
+                        {
+                            AbstractPhysicalObject.AbstractObjectType type = new AbstractPhysicalObject.AbstractObjectType(AbstractPhysicalObject.AbstractObjectType.values.GetEntry(j));
+                            if (!itemInfo.Contains(itemInfo.FirstOrDefault(x => x.iconData.itemType == type)))
+                                itemInfo.Add(new SaveInfo.Info.ItemInfo { iconData = new IconSymbol.IconSymbolData(CreatureTemplate.Type.StandardGroundCreature, type, 0), objectType = type });
+                        }
+                    }
+
+                    saveInfo = new SaveInfo(name, killedInfo, itemInfo);
                 }
                 else saveInfo = new SaveInfo(name);
                 listSlugcats.Add(saveInfo);
             }
             Inv(listSlugcats);
 
-            //for (int i = 0; i < 5; i++)
-            //    listSlugcats.Add(new SaveInfo(SlugcatStats.Name.White, new List<SaveInfo.Info.KilledInfo>()));
-
             Saves = listSlugcats.ToArray();
+
+            //if (!bMenu.MainMenu)
+            //{
+            //    SelectedSlugcat = Saves.IndexOf(Saves.First(x => x.name == bMenu.manager.rainWorld.progression.currentSaveState.save));
+            //    bMenu.Singal(null, $"SLUGCAT_{SelectedSlugcat}");
+            //}
         }
 
         private void Inv(List<SaveInfo> listSlugcats)
@@ -63,12 +82,19 @@ namespace Bestiary.BMenu
             SlugcatStats.Name name = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
             if (bMenu.manager.rainWorld.progression.IsThereASavedGame(name))
             {
-                var kills = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false).kills;
+                SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                var kills = saveState.kills;
                 List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
                 for (int j = 0; j < kills.Count; j++)
                     killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
-                if (killedInfo.Count > 0)
-                    listSlugcats.Add(new SaveInfo(name, killedInfo));
+
+                var items = saveState.progression.miscProgressionData.GetData().savedObjects;
+                List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
+                for (int j = 0; j < items.Count; j++)
+                    itemInfo.Add(SaveInfo.Info.ItemInfo.Transform(items[j]));
+
+                if (killedInfo.Count > 0 || itemInfo.Count > 0)
+                    listSlugcats.Add(new SaveInfo(name, killedInfo, itemInfo));
             }
         }
 

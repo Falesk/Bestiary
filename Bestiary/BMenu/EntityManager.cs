@@ -53,21 +53,32 @@ namespace Bestiary.BMenu
             _currentEntities.Clear();
             bMenu.buttonManager.ClearEntityButtons();
 
-            if (save.kills == null || save.kills.Count == 0)
+            if ((save.kills == null || save.kills.Count == 0) && (save.items == null || save.items.Count == 0))
             {
                 UpdateEmptinessLabel(true);
                 return;
             }
             UpdateEmptinessLabel(false);
 
-            for (int i = 0; i < save.kills.Count; i++)
-                _currentEntities.Add(save.kills[i]);
+            if (save.kills != null)
+            {
+                for (int i = 0; i < save.kills.Count; i++)
+                    _currentEntities.Add(save.kills[i]);
+            }
+
+            if (save.items != null)
+            {
+                for (int i = 0; i < save.items.Count; i++)
+                    _currentEntities.Add(save.items[i]);
+            }
 
             for (int i = 0; i < buttonsInRow * buttonsInColumn; i++)
             {
                 if (_currentEntities.Count <= i + buttonsInRow * buttonsInColumn * _entityPageNum) continue;
 
-                bMenu.buttonManager.CreateEntityButton(i, _currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData, EntityType.Creature);
+                IconSymbol.IconSymbolData data = _currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData;
+                bMenu.buttonManager.CreateEntityButton(i, data, data.critType == CreatureTemplate.Type.StandardGroundCreature ?
+                    (data.itemType == AbstractPhysicalObject.AbstractObjectType.Creature ? EntityType.None : EntityType.Item) : EntityType.Creature);
             }
         }
 

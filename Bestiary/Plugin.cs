@@ -34,6 +34,8 @@ namespace Bestiary
                     BestiaryEnums.RegisterValues();
                     HooksMainMenu.Init();
                     HooksKillingNotify.Init();
+                    HooksGeneral.Init();
+                    HooksSleepMenu.Init();
                     loaded = true;
                 }
             }
@@ -87,16 +89,23 @@ namespace Bestiary
             string name = "creaturetype-" + critType;
             if (RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation(name))
                 return Translate(name);
-            else
-            {
-                CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(critType));
-                CreatureTemplate ancestor = template.ancestor;
-                if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
-                    return ResolveCreatureName(ancestor.type.value);
-                if (ancestor != null && RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestor.type.value))
-                    return Translate("creaturetype-" + ancestor.type.value) + $"\n({critType})";
-                return critType;
-            }
+
+            CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(critType));
+            CreatureTemplate ancestor = template.ancestor;
+            if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
+                return ResolveCreatureName(ancestor.type.value);
+            if (ancestor != null && RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation("creaturetype-" + ancestor.type.value))
+                return Translate("creaturetype-" + ancestor.type.value) + $"\n({critType})";
+            return critType;
+        }
+
+        public static string ResolveItemName(string itemType)
+        {
+            string name = "objecttype-" + itemType;
+            if (RWCustom.Custom.rainWorld.inGameTranslator.HasShortstringTranslation(name))
+                return Translate(name);
+
+            return itemType;
         }
     }
 }

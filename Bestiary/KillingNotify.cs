@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Watcher;
-using MoreSlugcats;
 using System.Linq;
 
 namespace Bestiary
@@ -67,7 +66,7 @@ namespace Bestiary
             }
 
             if (lifeTime == 5)
-                room.PlaySound(SoundID.HUD_Food_Meter_Deplete_Plop_A, 0, 1.2f, Mathf.Lerp(0.9f, 1.1f, UnityEngine.Random.value));
+                room.PlaySound(SoundID.HUD_Food_Meter_Deplete_Plop_A, 0, 1.2f, Mathf.Lerp(0.9f, 1.1f, Random.value));
 
             if (ascendingProgress < maxAscending)
                 ascendingProgress++;

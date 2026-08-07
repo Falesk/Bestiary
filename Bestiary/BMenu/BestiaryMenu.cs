@@ -12,18 +12,20 @@ namespace Bestiary.BMenu
         public static Vector2 Resolution => RWCustom.Custom.rainWorld.options.ScreenSize;
         public static Vector2 ResolutionOffset => 0.5f * Vector2.right * (1366f - RWCustom.Custom.rainWorld.options.ScreenSize.x);
 
+        public bool MainMenu { get; private set; }
         public SlugcatManager slugcatManager;
         public EntityManager entityManager;
         public BoxManager boxManager;
         public ButtonManager buttonManager;
         public DescriptionPage currentDescription;
 
-        public BestiaryMenu(ProcessManager manager) : base(manager, BestiaryEnums.Bestiary)
+        public BestiaryMenu(ProcessManager manager, bool sleepMenu = false) : base(manager, BestiaryEnums.Bestiary)
         {
             pages.Add(new Page(this, null, "main", 0));
             scene = new InteractiveMenuScene(this, pages[0], manager.rainWorld.options.subBackground);
             pages[0].subObjects.Add(scene);
             mySoundLoopID = SoundID.MENU_Main_Menu_LOOP;
+            MainMenu = !sleepMenu;
 
             _backgroundDark = new FSprite("pixel")
             {
@@ -98,6 +100,8 @@ namespace Bestiary.BMenu
                 Exit();
             _lastPauseButton = flag;
 
+            currentDescription?.UpdateImage();
+
             base.Update();
         }
 
@@ -106,7 +110,9 @@ namespace Bestiary.BMenu
             if (_exiting)
                 return;
             _exiting = true;
-            manager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+            if (MainMenu)
+                manager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+            else manager.RequestMainProcessSwitch(ProcessManager.ProcessID.SleepScreen);
             PlaySound(SoundID.MENU_Switch_Page_Out);
         }
 
@@ -164,7 +170,11 @@ namespace Bestiary.BMenu
                 entityManager.UpdatePageLabel(true);
 
                 currentDescription?.Clear();
-                EntityManager.EntityType entityType = entityManager.EntitiesTotal > 0 ? EntityManager.EntityType.Slugcat : EntityManager.EntityType.None;
+
+                SlugcatStats.Name name = slugcatManager.Saves[slugcatManager.SelectedSlugcat].name;
+                SaveState save = manager.rainWorld.progression.GetOrInitiateSaveState(name, null, manager.menuSetup, false);
+                int cycles = save.cycleNumber;
+                EntityManager.EntityType entityType = entityManager.EntitiesTotal > 0 || cycles > 0 ? EntityManager.EntityType.Slugcat : EntityManager.EntityType.None;
                 IconSymbol.IconSymbolData icon = new IconSymbol.IconSymbolData(CreatureTemplate.Type.Slugcat, AbstractPhysicalObject.AbstractObjectType.Creature, 0);
                 currentDescription = new DescriptionPage(this, icon, entityType);
             }
@@ -195,6 +205,8 @@ namespace Bestiary.BMenu
         {
             if (info is SaveInfo.Info.KilledInfo)
                 return EntityManager.EntityType.Creature;
+            if (info is SaveInfo.Info.ItemInfo)
+                return EntityManager.EntityType.Item;
             return EntityManager.EntityType.None;
         }
 
