@@ -30,8 +30,8 @@ namespace Bestiary
                 c.Emit(OpCodes.Ldarg_1);
                 c.EmitDelegate<Action<ProcessManager, ProcessManager.ProcessID>>((self, ID) =>
                 {
-                    if (ID == BestiaryEnums.Bestiary || ID == BestiaryEnums.BestiarySleepMenu)
-                        self.currentMainLoop = new BMenu.BestiaryMenu(self, ID == BestiaryEnums.BestiarySleepMenu);
+                    if (ID == BestiaryEnums.Bestiary)
+                        self.currentMainLoop = new BMenu.BestiaryMenu(self);
                 });
             }
             catch (Exception e) { Plugin.logger.LogError(e); }

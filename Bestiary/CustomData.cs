@@ -21,13 +21,5 @@ namespace Bestiary
 
         private static readonly ConditionalWeakTable<PlayerProgression.MiscProgressionData, MiscProgressionCustomData> miscProgrCData = new ConditionalWeakTable<PlayerProgression.MiscProgressionData, MiscProgressionCustomData>();
         public static MiscProgressionCustomData GetData(this PlayerProgression.MiscProgressionData mProgression) => miscProgrCData.GetValue(mProgression, x => new MiscProgressionCustomData());
-
-        public class SleepAndDeathScreenData
-        {
-            public SymbolButton bestiaryButton;
-        }
-
-        private static readonly ConditionalWeakTable<SleepAndDeathScreen, SleepAndDeathScreenData> sleepMenuData = new ConditionalWeakTable<SleepAndDeathScreen, SleepAndDeathScreenData>();
-        public static SleepAndDeathScreenData GetData(this SleepAndDeathScreen menu) => sleepMenuData.GetValue(menu, x => new SleepAndDeathScreenData());
     }
 }

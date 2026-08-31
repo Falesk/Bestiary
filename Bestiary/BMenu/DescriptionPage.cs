@@ -1,4 +1,6 @@
 ﻿using Menu;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -74,7 +76,7 @@ namespace Bestiary.BMenu
         private void InitSlugcatPage()
         {
             SlugcatCharacteristic sChar = characteristic as SlugcatCharacteristic;
-            name = sChar.slugcat.ToString();
+            name = SlugcatStats.getSlugcatName(sChar.slugcat).ToString();
             icon = new FSprite("Kill_Slugcat")
             {
                 color = PlayerGraphics.DefaultSlugcatColor(sChar.slugcat),
@@ -236,20 +238,45 @@ namespace Bestiary.BMenu
                 return;
             }
 
-            string[] lines;
-            string description = Plugin.Translate($"bDscr-{name.ToLower()}");
-            if (description == $"bDscr-{name.ToLower()}")
-                lines = new string[] { "CAN'T FIND AN ENTITY DESCRIPTION" };
-            else lines = description.Split(new string[] { "<LINE>" }, System.StringSplitOptions.None);
-
-            entityDescription = new MenuLabel[lines.Length];
-            for (int i = 0; i < lines.Length; i++)
+            string description = "CAN'T FIND AN ENTITY DESCRIPTION";
+            switch (entityType)
             {
-                Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 27f * (i + 1.25f));
-                entityDescription[i] = new MenuLabel(bMenu, bMenu.pages[0], lines[i].Trim(), pos, Vector2.one, false);
-                entityDescription[i].label.alignment = FLabelAlignment.Left;
-                bMenu.pages[0].subObjects.Add(entityDescription[i]);
+                case EntityManager.EntityType.Creature:
+                    Plugin.descriptionContainer.Creatures.TryGetValue(name.ToLower(), out description);
+                    break;
+                case EntityManager.EntityType.Slugcat:
+                    Plugin.descriptionContainer.Slugcats.TryGetValue(name.ToLower(), out description);
+                    break;
             }
+            description = description.Trim();
+
+            //MenuLabel label = new MenuLabel(bMenu, bMenu.pages[0], string.Empty, Vector2.zero, Vector2.zero, false);
+            FLabel label = new FLabel(RWCustom.Custom.GetFont(), string.Empty);
+            string[] words = description.Split(new char[] { ' ' });
+            float fieldLength = DescBox.width * 0.92f;
+            List<MenuLabel> labels = new List<MenuLabel>();
+
+            Action<string, string> appendLabel = (txt, word) =>
+            {
+                Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 27f * (labels.Count + 1.25f));
+                MenuLabel l = new MenuLabel(bMenu, bMenu.pages[0], txt, pos, Vector2.zero, false);
+                l.label.alignment = FLabelAlignment.Left;
+                labels.Add(l);
+                bMenu.pages[0].subObjects.Add(l);
+                label.text = word + " ";
+            };
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                string txt = label.text;
+                label.text += words[i];
+                if (label.textRect.width > fieldLength)
+                    appendLabel(txt, words[i]);
+                else if (i != words.Length - 1) label.text += " ";
+            }
+            appendLabel(label.text, string.Empty);
+
+            entityDescription = labels.ToArray();
         }
 
         private bool IsInv => name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value;

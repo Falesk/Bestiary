@@ -69,12 +69,6 @@ namespace Bestiary.BMenu
             Inv(listSlugcats);
 
             Saves = listSlugcats.ToArray();
-
-            //if (!bMenu.MainMenu)
-            //{
-            //    SelectedSlugcat = Saves.IndexOf(Saves.First(x => x.name == bMenu.manager.rainWorld.progression.currentSaveState.save));
-            //    bMenu.Singal(null, $"SLUGCAT_{SelectedSlugcat}");
-            //}
         }
 
         private void Inv(List<SaveInfo> listSlugcats)

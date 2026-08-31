@@ -12,6 +12,7 @@ namespace Bestiary
         public const string Name = "Bestiary";
         public const string Version = "1.0";
         public static ManualLogSource logger;
+        public static DescriptionContainer descriptionContainer;
         private static bool loaded = false;
 
         public void Awake()
@@ -35,7 +36,6 @@ namespace Bestiary
                     HooksMainMenu.Init();
                     HooksKillingNotify.Init();
                     HooksGeneral.Init();
-                    HooksSleepMenu.Init();
                     loaded = true;
                 }
             }
