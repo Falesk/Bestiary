@@ -35,7 +35,7 @@ namespace Bestiary.BMenu
             lines.Add(Plugin.Translate("Kill count: %").Replace("%", kills.ToString()));
             if (foodPoints != 0)
                 lines.Add(Plugin.Translate("Restores % food pips").Replace("%", foodPoints.ToString()));
-            else lines.Add(Plugin.Translate("Doesn't restore food pips"));
+            //else lines.Add(Plugin.Translate("Doesn't restore food pips"));
             lines.Add(Plugin.Translate("Health: %").Replace("%", hp.ToString()));
             lines.Add(Plugin.Translate("Behaviour") + ": " + Plugin.Translate($"behav-{behaviour.value}"));
             lines.Add(Plugin.Translate("Points per kill: %").Replace("%", score == -1 ? "?" : score.ToString()));

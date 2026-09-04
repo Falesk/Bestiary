@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace Bestiary
 {
@@ -18,21 +20,25 @@ namespace Bestiary
                 path = AssetManager.ResolveFilePath($"text/text_eng/descriptions.json");
             Dictionary<string, object> dict = File.ReadAllText(path).dictionaryFromJson();
 
-            if (dict != null)
+            try
             {
-                if (dict.TryGetValue("creatures", out object _))
+                if (dict != null)
                 {
-                    Dictionary<string, object> d = (Dictionary<string, object>)dict["creatures"];
-                    foreach (var pair in d)
-                        Creatures.Add(pair.Key, pair.Value.ToString());
-                }
-                if (dict.TryGetValue("slugcats", out object _))
-                {
-                    Dictionary<string, object> d = (Dictionary<string, object>)dict["slugcats"];
-                    foreach (var pair in d)
-                        Slugcats.Add(pair.Key, pair.Value.ToString());
+                    if (dict.TryGetValue("creatures", out object _))
+                    {
+                        Dictionary<string, object> d = (Dictionary<string, object>)dict["creatures"];
+                        foreach (var pair in d)
+                            Creatures.Add(pair.Key, pair.Value.ToString());
+                    }
+                    if (dict.TryGetValue("slugcats", out object _))
+                    {
+                        Dictionary<string, object> d = (Dictionary<string, object>)dict["slugcats"];
+                        foreach (var pair in d)
+                            Slugcats.Add(pair.Key, pair.Value.ToString());
+                    }
                 }
             }
+            catch(Exception ex) { Debug.LogException(ex); }
         }
     }
 }

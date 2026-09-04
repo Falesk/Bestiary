@@ -45,7 +45,7 @@ namespace Bestiary.BMenu
         public void UpdateEmptinessLabel(bool show) => _emptinessLabel.text = show ? Plugin.Translate("[ No Entries ]") : string.Empty;
         public void UpdatePageLabel(bool show) => _pageLabel.text = show ?
             Plugin.Translate("Page $ of %")
-            .Replace("$", Mathf.Max(_entityPageNum + 1, PagesTotal).ToString())
+            .Replace("$", Mathf.Min(_entityPageNum + 1, PagesTotal).ToString())
             .Replace("%", PagesTotal.ToString()) : string.Empty;
 
         public void LoadEntities(SaveInfo save)
