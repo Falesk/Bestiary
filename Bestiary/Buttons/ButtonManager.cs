@@ -120,14 +120,14 @@ namespace Bestiary.Buttons
                 slugcatButtons[i].button.toggled = false;
             for (int i = 0; i < entityButtons.Count; i++)
                 entityButtons[i].button.toggled = false;
-            if (selectedSlugcat > 0 && selectedSlugcat < slugcatButtons.Length)
+            if (selectedSlugcat >= 0 && selectedSlugcat < slugcatButtons.Length)
                 slugcatButtons[selectedSlugcat].button.toggled = true;
         }
 
         public void EntityButtonToggles(int selectedEntity)
         {
-            for (int i = 0; i < slugcatButtons.Length; i++)
-                slugcatButtons[i].button.toggled = false;
+            //for (int i = 0; i < slugcatButtons.Length; i++)
+            //    slugcatButtons[i].button.toggled = false;
             for (int i = 0; i < entityButtons.Count; i++)
                 entityButtons[i].button.toggled = false;
             int selectedButton = selectedEntity - EntityManager.buttonsInColumn * EntityManager.buttonsInRow * bMenu.entityManager.CurrentPage;

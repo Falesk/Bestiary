@@ -19,7 +19,6 @@ namespace Bestiary.BMenu
 
         public void InitSlugcats()
         {
-            bool debugOpenAll = false;
             List<SaveInfo> listSlugcats = new List<SaveInfo>();
 
             for (int i = 0; i < SlugcatStats.Name.values.Count; i++)
@@ -36,30 +35,31 @@ namespace Bestiary.BMenu
                     var kills = saveState.kills;
                     List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
                     for (int j = 0; j < kills.Count; j++)
-                        killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
-                    if (debugOpenAll)
                     {
-                        for (int j = 0; j < CreatureTemplate.Type.values.Count; j++)
-                        {
-                            CreatureTemplate.Type type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(j));
-                            if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type)))
-                                killedInfo.Add(new SaveInfo.Info.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
-                        }
+                        if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == kills[j].Key.critType)))
+                            killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
                     }
+#if DEBUG
+                    for (int j = 0; j < CreatureTemplate.Type.values.Count; j++)
+                    {
+                        CreatureTemplate.Type type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(j));
+                        if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type)))
+                            killedInfo.Add(new SaveInfo.Info.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
+                    }
+#endif
 
                     var items = saveState.progression.miscProgressionData.GetData().savedObjects;
                     List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
                     for (int j = 0; j < items.Count; j++)
                         itemInfo.Add(SaveInfo.Info.ItemInfo.Transform(items[j]));
-                    if (debugOpenAll)
+#if DEBUG
+                    for (int j = 0; j < AbstractPhysicalObject.AbstractObjectType.values.Count; j++)
                     {
-                        for (int j = 0; j < AbstractPhysicalObject.AbstractObjectType.values.Count; j++)
-                        {
-                            AbstractPhysicalObject.AbstractObjectType type = new AbstractPhysicalObject.AbstractObjectType(AbstractPhysicalObject.AbstractObjectType.values.GetEntry(j));
-                            if (!itemInfo.Contains(itemInfo.FirstOrDefault(x => x.iconData.itemType == type)))
-                                itemInfo.Add(new SaveInfo.Info.ItemInfo { iconData = new IconSymbol.IconSymbolData(CreatureTemplate.Type.StandardGroundCreature, type, 0), objectType = type });
-                        }
+                        AbstractPhysicalObject.AbstractObjectType type = new AbstractPhysicalObject.AbstractObjectType(AbstractPhysicalObject.AbstractObjectType.values.GetEntry(j));
+                        if (!itemInfo.Contains(itemInfo.FirstOrDefault(x => x.iconData.itemType == type)))
+                            itemInfo.Add(new SaveInfo.Info.ItemInfo { iconData = new IconSymbol.IconSymbolData(CreatureTemplate.Type.StandardGroundCreature, type, 0), objectType = type });
                     }
+#endif
 
                     saveInfo = new SaveInfo(name, killedInfo, itemInfo);
                 }

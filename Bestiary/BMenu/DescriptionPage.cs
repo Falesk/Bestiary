@@ -1,5 +1,4 @@
 ﻿using Menu;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -250,13 +249,12 @@ namespace Bestiary.BMenu
             }
             description = description.Trim();
 
-            //MenuLabel label = new MenuLabel(bMenu, bMenu.pages[0], string.Empty, Vector2.zero, Vector2.zero, false);
             FLabel label = new FLabel(RWCustom.Custom.GetFont(), string.Empty);
             string[] words = description.Split(new char[] { ' ' });
             float fieldLength = DescBox.width * 0.92f;
             List<MenuLabel> labels = new List<MenuLabel>();
 
-            Action<string, string> appendLabel = (txt, word) =>
+            void appendLabel(string txt, string word)
             {
                 Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 27f * (labels.Count + 1.25f));
                 MenuLabel l = new MenuLabel(bMenu, bMenu.pages[0], txt, pos, Vector2.zero, false);
@@ -264,7 +262,7 @@ namespace Bestiary.BMenu
                 labels.Add(l);
                 bMenu.pages[0].subObjects.Add(l);
                 label.text = word + " ";
-            };
+            }
 
             for (int i = 0; i < words.Length; i++)
             {
@@ -289,7 +287,6 @@ namespace Bestiary.BMenu
             Vector2 pos = new Vector2(DescBox.position.x + 30f, _entityDescriptionLabel.pos.y - 45f);
             entityDescription[0] = new MenuLabel(bMenu, bMenu.pages[0], line, pos, Vector2.one, false);
             entityDescription[0].label.alignment = FLabelAlignment.Left;
-            entityDescription[0].label.color = Color.red;
             bMenu.pages[0].subObjects.Add(entityDescription[0]);
         }
 

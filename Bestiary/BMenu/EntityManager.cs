@@ -8,7 +8,7 @@ namespace Bestiary.BMenu
     {
         public BestiaryMenu bMenu;
         public const int buttonsInColumn = 8, buttonsInRow = 4;
-        public int PagesTotal => EntitiesTotal / (buttonsInRow * buttonsInColumn) + 1;
+        public int PagesTotal => Mathf.CeilToInt(EntitiesTotal / (float)(buttonsInRow * buttonsInColumn));
         public int CurrentPage => _entityPageNum;
         public int EntitiesTotal => _currentEntities.Count;
         public int SelectedEntity { get; private set; }
@@ -45,7 +45,7 @@ namespace Bestiary.BMenu
         public void UpdateEmptinessLabel(bool show) => _emptinessLabel.text = show ? Plugin.Translate("[ No Entries ]") : string.Empty;
         public void UpdatePageLabel(bool show) => _pageLabel.text = show ?
             Plugin.Translate("Page $ of %")
-            .Replace("$", (_entityPageNum + 1).ToString())
+            .Replace("$", Mathf.Max(_entityPageNum + 1, PagesTotal).ToString())
             .Replace("%", PagesTotal.ToString()) : string.Empty;
 
         public void LoadEntities(SaveInfo save)
@@ -102,7 +102,7 @@ namespace Bestiary.BMenu
 
         public void UpdatePagerButtons()
         {
-            bool flag = (_entityPageNum + 1) * buttonsInRow * buttonsInColumn > EntitiesTotal;
+            bool flag = (_entityPageNum + 1) * buttonsInRow * buttonsInColumn >= EntitiesTotal;
             bMenu.buttonManager.nextButton.button.buttonBehav.greyedOut = flag;
             bMenu.buttonManager.nextButton.icon.color = flag ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
             bMenu.buttonManager.prevButton.button.buttonBehav.greyedOut = _entityPageNum == 0;

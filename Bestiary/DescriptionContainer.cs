@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Bestiary
 {
@@ -15,6 +14,8 @@ namespace Bestiary
             Slugcats = new Dictionary<string, string>();
 
             string path = AssetManager.ResolveFilePath($"text/text_{locale}/descriptions.json");
+            if (!File.Exists(path))
+                path = AssetManager.ResolveFilePath($"text/text_eng/descriptions.json");
             Dictionary<string, object> dict = File.ReadAllText(path).dictionaryFromJson();
 
             if (dict != null)
