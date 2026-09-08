@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Logging;
 using System;
 using System.Linq;
@@ -91,6 +91,9 @@ namespace Bestiary
                 return Translate(name);
 
             CreatureTemplate template = StaticWorld.GetCreatureTemplate(new CreatureTemplate.Type(critType));
+            if (template == null)
+                return critType;
+
             CreatureTemplate ancestor = template.ancestor;
             if (ancestor != null && ancestor.type.value != template.TopAncestor().type.ToString())
                 return ResolveCreatureName(ancestor.type.value);

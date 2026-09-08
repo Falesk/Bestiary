@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using Bestiary.BMenu;
 
@@ -56,7 +56,6 @@ namespace Bestiary.Buttons
 
         public void CreateSlugcatButtons(Vector2 firstPos, Vector2 offset)
         {
-
             firstSlugcatButtonPos = firstPos;
             slugcatOffset = offset;
             slugcatButtons = new SlugcatButton[bMenu.slugcatManager.Saves.Length];
@@ -69,7 +68,7 @@ namespace Bestiary.Buttons
             RefreshSlugcats(0);
         }
 
-        public void CreateEntityButton(int index, IconSymbol.IconSymbolData icon, EntityManager.EntityType entityType)
+        public void CreateEntityButton(int index, SaveInfo.Info info, EntityManager.EntityType entityType)
         {
             BoxManager.Box buttonBox = bMenu.boxManager.boxes["entitiesBox"];
             float xOffset = 0.5f * (buttonBox.normilizedSize.x - EntityManager.buttonsInRow * EntityButton.ButtonSize.x) / EntityManager.buttonsInRow;
@@ -78,12 +77,17 @@ namespace Bestiary.Buttons
             float nY = buttonBox.normilizedPos.y + buttonBox.normilizedSize.y - EntityButton.ButtonSize.y - (index / EntityManager.buttonsInRow) * (buttonBox.normilizedSize.y / EntityManager.buttonsInColumn) + yOffset;
 
             Vector2 nPos = new Vector2(nX, nY);
-
             string idName = entityType == EntityManager.EntityType.Creature ? $"ENTITY_CRIT_{index}" : $"ENTITY_ITEM_{index}";
 
-            EntityButton button = new EntityButton(this, idName, nPos, icon, entityType);
+            EntityButton button = new EntityButton(this, idName, nPos, info, entityType);
             button.CreateButton();
             entityButtons.Add(button);
+        }
+
+        public void UpdateEntityButtons()
+        {
+            for (int i = 0; i < entityButtons.Count; i++)
+                entityButtons[i]?.UpdateAnimatedIcon();
         }
 
         public void ClearEntityButtons()
@@ -97,7 +101,7 @@ namespace Bestiary.Buttons
         {
             for (int i = 0; i < slugcatButtons.Length; i++)
             {
-                slugcatButtons[i].button.buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= SlugcatManager.slugsInColumn/* || slugcats[i].kills == null*/;
+                slugcatButtons[i].button.buttonBehav.greyedOut = i < slugcatSlideNum || i - slugcatSlideNum >= SlugcatManager.slugsInColumn;
                 slugcatButtons[i].ChangeVisibility(!slugcatButtons[i].button.buttonBehav.greyedOut);
                 slugcatButtons[i].SetPosition(firstSlugcatButtonPos + (slugcatSlideNum - i) * slugcatOffset);
             }
@@ -126,8 +130,6 @@ namespace Bestiary.Buttons
 
         public void EntityButtonToggles(int selectedEntity)
         {
-            //for (int i = 0; i < slugcatButtons.Length; i++)
-            //    slugcatButtons[i].button.toggled = false;
             for (int i = 0; i < entityButtons.Count; i++)
                 entityButtons[i].button.toggled = false;
             int selectedButton = selectedEntity - EntityManager.buttonsInColumn * EntityManager.buttonsInRow * bMenu.entityManager.CurrentPage;

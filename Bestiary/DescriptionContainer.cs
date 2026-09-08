@@ -12,33 +12,84 @@ namespace Bestiary
 
         public DescriptionContainer(string locale)
         {
-            Creatures = new Dictionary<string, string>();
-            Slugcats = new Dictionary<string, string>();
+            Creatures =
+                new Dictionary<string, string>(
+                    StringComparer.OrdinalIgnoreCase
+                );
 
-            string path = AssetManager.ResolveFilePath($"text/text_{locale}/descriptions.json");
+            Slugcats =
+                new Dictionary<string, string>(
+                    StringComparer.OrdinalIgnoreCase
+                );
+            LoadFile("eng");
+            if (!string.Equals(
+                locale,
+                "eng",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                LoadFile(locale);
+            }
+        }
+
+        private void LoadFile(string locale)
+        {
+            string path =
+                AssetManager.ResolveFilePath(
+                    $"text/text_{locale}/descriptions.json"
+                );
+
             if (!File.Exists(path))
-                path = AssetManager.ResolveFilePath($"text/text_eng/descriptions.json");
-            Dictionary<string, object> dict = File.ReadAllText(path).dictionaryFromJson();
+                return;
 
             try
             {
-                if (dict != null)
+                Dictionary<string, object> dict =
+                    File.ReadAllText(path)
+                        .dictionaryFromJson();
+
+                if (dict == null)
+                    return;
+
+                if (dict.TryGetValue(
+                    "creatures",
+                    out object creaturesObj))
                 {
-                    if (dict.TryGetValue("creatures", out object _))
+                    Dictionary<string, object> creatures =
+                        creaturesObj as Dictionary<string, object>;
+
+                    if (creatures != null)
                     {
-                        Dictionary<string, object> d = (Dictionary<string, object>)dict["creatures"];
-                        foreach (var pair in d)
-                            Creatures.Add(pair.Key, pair.Value.ToString());
+                        foreach (var pair in creatures)
+                        {
+                            Creatures[pair.Key] =
+                                pair.Value?.ToString()
+                                ?? string.Empty;
+                        }
                     }
-                    if (dict.TryGetValue("slugcats", out object _))
+                }
+
+                if (dict.TryGetValue(
+                    "slugcats",
+                    out object slugcatsObj))
+                {
+                    Dictionary<string, object> slugcats =
+                        slugcatsObj as Dictionary<string, object>;
+
+                    if (slugcats != null)
                     {
-                        Dictionary<string, object> d = (Dictionary<string, object>)dict["slugcats"];
-                        foreach (var pair in d)
-                            Slugcats.Add(pair.Key, pair.Value.ToString());
+                        foreach (var pair in slugcats)
+                        {
+                            Slugcats[pair.Key] =
+                                pair.Value?.ToString()
+                                ?? string.Empty;
+                        }
                     }
                 }
             }
-            catch(Exception ex) { Debug.LogException(ex); }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
     }
 }

@@ -89,6 +89,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BestiaryAssets.cs" />
     <Compile Include="BestiaryEnums.cs" />
     <Compile Include="BMenu\DescriptionPage.cs" />
     <Compile Include="BMenu\ICharacteristic.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="Buttons\SlugcatButton.cs" />
     <Compile Include="BMenu\SaveInfo.cs" />
     <Compile Include="BMenu\SlugcatManager.cs" />
+    <Compile Include="CreatureCatalog.cs" />
     <Compile Include="CustomData.cs" />
     <Compile Include="DescriptionContainer.cs" />
     <Compile Include="HooksGeneral.cs" />

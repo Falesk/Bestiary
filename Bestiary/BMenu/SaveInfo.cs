@@ -28,15 +28,35 @@ namespace Bestiary.BMenu
             public class KilledInfo : Info
             {
                 public int kills;
+                public string catalogId;
+                public string displayNameOverride;
+                public string descriptionOverride;
+                public string customIconPath;
+                public string customImagePath;
+                public bool isGroup;
+                public string healthOverride;
+                public string pointsPerKillOverride;
+                public string totalPointsOverride;
+                public List<IconSymbol.IconSymbolData> iconVariants;
 
-                public static KilledInfo Transform(KeyValuePair<IconSymbol.IconSymbolData, int> pair) => new KilledInfo { iconData = pair.Key, kills = pair.Value };
+                public static KilledInfo Transform(KeyValuePair<IconSymbol.IconSymbolData, int> pair) =>
+                    new KilledInfo
+                    {
+                        iconData = pair.Key,
+                        kills = pair.Value
+                    };
             }
 
             public class ItemInfo : Info
             {
                 public AbstractPhysicalObject.AbstractObjectType objectType;
 
-                public static ItemInfo Transform(IconSymbol.IconSymbolData data) => new ItemInfo { iconData = data, objectType = data.itemType };
+                public static ItemInfo Transform(IconSymbol.IconSymbolData data) =>
+                    new ItemInfo
+                    {
+                        iconData = data,
+                        objectType = data.itemType
+                    };
             }
         }
     }

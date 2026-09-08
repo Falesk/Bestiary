@@ -1,4 +1,4 @@
-﻿using Menu;
+using Menu;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -52,33 +52,31 @@ namespace Bestiary.BMenu
         {
             _currentEntities.Clear();
             bMenu.buttonManager.ClearEntityButtons();
-
-            if ((save.kills == null || save.kills.Count == 0) && (save.items == null || save.items.Count == 0))
+             if (save.kills == null || save.kills.Count == 0)
             {
                 UpdateEmptinessLabel(true);
                 return;
             }
+
             UpdateEmptinessLabel(false);
 
-            if (save.kills != null)
-            {
-                for (int i = 0; i < save.kills.Count; i++)
-                    _currentEntities.Add(save.kills[i]);
-            }
-
-            if (save.items != null)
-            {
-                for (int i = 0; i < save.items.Count; i++)
-                    _currentEntities.Add(save.items[i]);
-            }
+            for (int i = 0; i < save.kills.Count; i++)
+                _currentEntities.Add(save.kills[i]);
 
             for (int i = 0; i < buttonsInRow * buttonsInColumn; i++)
             {
-                if (_currentEntities.Count <= i + buttonsInRow * buttonsInColumn * _entityPageNum) continue;
+                int realIndex = i + buttonsInRow * buttonsInColumn * _entityPageNum;
+                if (_currentEntities.Count <= realIndex)
+                    continue;
 
-                IconSymbol.IconSymbolData data = _currentEntities[i + buttonsInRow * buttonsInColumn * _entityPageNum].iconData;
-                bMenu.buttonManager.CreateEntityButton(i, data, data.critType == CreatureTemplate.Type.StandardGroundCreature ?
-                    (data.itemType == AbstractPhysicalObject.AbstractObjectType.Creature ? EntityType.None : EntityType.Item) : EntityType.Creature);
+                SaveInfo.Info info = _currentEntities[realIndex];
+                IconSymbol.IconSymbolData data = info.iconData;
+
+                EntityType entityType = data.critType == CreatureTemplate.Type.StandardGroundCreature
+                    ? (data.itemType == AbstractPhysicalObject.AbstractObjectType.Creature ? EntityType.None : EntityType.Item)
+                    : EntityType.Creature;
+
+                bMenu.buttonManager.CreateEntityButton(i, info, entityType);
             }
         }
 
@@ -92,7 +90,8 @@ namespace Bestiary.BMenu
         {
             if (next && (_entityPageNum + 1) * buttonsInRow * buttonsInColumn < EntitiesTotal)
                 _entityPageNum++;
-            else _entityPageNum -= (_entityPageNum == 0) ? 0 : 1;
+            else
+                _entityPageNum -= (_entityPageNum == 0) ? 0 : 1;
 
             if (bMenu.slugcatManager.SelectedSlugcat != -1)
                 LoadEntities(bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat]);

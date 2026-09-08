@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Bestiary.BMenu
@@ -19,55 +19,68 @@ namespace Bestiary.BMenu
 
         public void InitSlugcats()
         {
+#if DEBUG
+             CreatureCatalog.LogDiscoveredCreatures();
+#endif
+
             List<SaveInfo> listSlugcats = new List<SaveInfo>();
 
             for (int i = 0; i < SlugcatStats.Name.values.Count; i++)
             {
                 SlugcatStats.Name name = new SlugcatStats.Name(SlugcatStats.Name.values.GetEntry(i));
-                if (SlugcatStats.HiddenOrUnplayableSlugcat(name)) continue;
+                if (SlugcatStats.HiddenOrUnplayableSlugcat(name))
+                    continue;
 
                 bool hasSave = bMenu.manager.rainWorld.progression.IsThereASavedGame(name);
-
                 SaveInfo saveInfo;
+
                 if (hasSave)
                 {
-                    SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                    SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(
+                        name,
+                        null,
+                        bMenu.manager.menuSetup,
+                        false);
+
                     var kills = saveState.kills;
                     List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
+
                     for (int j = 0; j < kills.Count; j++)
                     {
-                        if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == kills[j].Key.critType)))
+                         if (!killedInfo.Any(x =>
+                            x.iconData.critType == kills[j].Key.critType &&
+                            x.iconData.intData == kills[j].Key.intData))
+                        {
                             killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
+                        }
                     }
+
+                    bool forceDebugGroups = false;
 #if DEBUG
-                    for (int j = 0; j < CreatureTemplate.Type.values.Count; j++)
-                    {
-                        CreatureTemplate.Type type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(j));
-                        if (!killedInfo.Contains(killedInfo.FirstOrDefault(x => x.iconData.critType == type)))
-                            killedInfo.Add(new SaveInfo.Info.KilledInfo { iconData = new IconSymbol.IconSymbolData(type, AbstractPhysicalObject.AbstractObjectType.Creature, 0), kills = 0 });
-                    }
+                    CreatureCatalog.AddAllRegisteredCreatures(killedInfo);
+                    forceDebugGroups = true;
 #endif
 
-                    var items = saveState.progression.miscProgressionData.GetData().savedObjects;
+                    killedInfo = CreatureCatalog.PrepareForDisplay(killedInfo, forceDebugGroups);
                     List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
-                    for (int j = 0; j < items.Count; j++)
-                        itemInfo.Add(SaveInfo.Info.ItemInfo.Transform(items[j]));
-#if DEBUG
-                    for (int j = 0; j < AbstractPhysicalObject.AbstractObjectType.values.Count; j++)
-                    {
-                        AbstractPhysicalObject.AbstractObjectType type = new AbstractPhysicalObject.AbstractObjectType(AbstractPhysicalObject.AbstractObjectType.values.GetEntry(j));
-                        if (!itemInfo.Contains(itemInfo.FirstOrDefault(x => x.iconData.itemType == type)))
-                            itemInfo.Add(new SaveInfo.Info.ItemInfo { iconData = new IconSymbol.IconSymbolData(CreatureTemplate.Type.StandardGroundCreature, type, 0), objectType = type });
-                    }
-#endif
-
                     saveInfo = new SaveInfo(name, killedInfo, itemInfo);
                 }
-                else saveInfo = new SaveInfo(name);
+                else
+                {
+#if DEBUG
+                     List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
+                    CreatureCatalog.AddAllRegisteredCreatures(killedInfo);
+                    killedInfo = CreatureCatalog.PrepareForDisplay(killedInfo, true);
+                    saveInfo = new SaveInfo(name, killedInfo, new List<SaveInfo.Info.ItemInfo>());
+#else
+                    saveInfo = new SaveInfo(name);
+#endif
+                }
+
                 listSlugcats.Add(saveInfo);
             }
-            Inv(listSlugcats);
 
+            Inv(listSlugcats);
             Saves = listSlugcats.ToArray();
         }
 
@@ -76,18 +89,36 @@ namespace Bestiary.BMenu
             SlugcatStats.Name name = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
             if (bMenu.manager.rainWorld.progression.IsThereASavedGame(name))
             {
-                SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(
+                    name,
+                    null,
+                    bMenu.manager.menuSetup,
+                    false);
+
                 var kills = saveState.kills;
                 List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
+
                 for (int j = 0; j < kills.Count; j++)
-                    killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
+                {
+                    if (!killedInfo.Any(x =>
+                        x.iconData.critType == kills[j].Key.critType &&
+                        x.iconData.intData == kills[j].Key.intData))
+                    {
+                        killedInfo.Add(SaveInfo.Info.KilledInfo.Transform(kills[j]));
+                    }
+                }
 
-                var items = saveState.progression.miscProgressionData.GetData().savedObjects;
+                bool forceDebugGroups = false;
+#if DEBUG
+                CreatureCatalog.AddAllRegisteredCreatures(killedInfo);
+                forceDebugGroups = true;
+#endif
+
+                killedInfo = CreatureCatalog.PrepareForDisplay(killedInfo, forceDebugGroups);
+
                 List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
-                for (int j = 0; j < items.Count; j++)
-                    itemInfo.Add(SaveInfo.Info.ItemInfo.Transform(items[j]));
 
-                if (killedInfo.Count > 0 || itemInfo.Count > 0)
+                if (killedInfo.Count > 0)
                     listSlugcats.Add(new SaveInfo(name, killedInfo, itemInfo));
             }
         }
@@ -102,13 +133,20 @@ namespace Bestiary.BMenu
         {
             if (down && _slugcatSlideNum + slugsInColumn <= Saves.Length)
                 _slugcatSlideNum += _slugcatSlideNum + slugsInColumn >= Saves.Length ? 0 : 1;
-            else _slugcatSlideNum -= (_slugcatSlideNum == 0) ? 0 : 1;
+            else
+                _slugcatSlideNum -= (_slugcatSlideNum == 0) ? 0 : 1;
+
             bool flag = _slugcatSlideNum + slugsInColumn >= Saves.Length;
 
             bMenu.buttonManager.downButton.button.buttonBehav.greyedOut = flag;
-            bMenu.buttonManager.downButton.icon.color = flag ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
+            bMenu.buttonManager.downButton.icon.color = flag
+                ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey)
+                : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
+
             bMenu.buttonManager.upButton.button.buttonBehav.greyedOut = _slugcatSlideNum == 0;
-            bMenu.buttonManager.upButton.icon.color = _slugcatSlideNum == 0 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
+            bMenu.buttonManager.upButton.icon.color = _slugcatSlideNum == 0
+                ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey)
+                : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.White);
 
             bMenu.buttonManager.RefreshSlugcats(_slugcatSlideNum);
         }

@@ -1,4 +1,4 @@
-﻿using Menu;
+using Menu;
 using UnityEngine;
 using Bestiary.Buttons;
 
@@ -93,13 +93,17 @@ namespace Bestiary.BMenu
         public override void Update()
         {
             bool flag = RWInput.CheckPauseButton(0);
+
             if (flag && !_lastPauseButton)
                 Exit();
+
             _lastPauseButton = flag;
 
             currentDescription?.UpdateImage();
+            buttonManager?.UpdateEntityButtons();
 
             base.Update();
+            currentDescription?.UpdateDescriptionScrollWheel();
         }
 
         public void Exit()
@@ -138,6 +142,9 @@ namespace Bestiary.BMenu
             if (killID > -1 && killID < killScores.Length)
                 return killScores[killID];
             CreatureTemplate template = StaticWorld.GetCreatureTemplate(symbolData.critType);
+            if (template == null)
+                return -1;
+
             CreatureTemplate ancestor = template.ancestor;
             if (ancestor != null && ancestor.type != template.TopAncestor().type)
             {
@@ -149,7 +156,30 @@ namespace Bestiary.BMenu
                 return killScores[killID];
             return -1;
         }
+        public override float ValueOfSlider(Slider slider)
+        {
+            if (slider != null &&
+                slider.ID == BestiaryEnums.DescriptionScroll)
+            {
+                return currentDescription?.DescriptionScrollValue ?? 1f;
+            }
 
+            return base.ValueOfSlider(slider);
+        }
+
+        public override void SliderSetValue(
+            Slider slider,
+            float value)
+        {
+            if (slider != null &&
+                slider.ID == BestiaryEnums.DescriptionScroll)
+            {
+                currentDescription?.SetDescriptionScroll(value);
+                return;
+            }
+
+            base.SliderSetValue(slider, value);
+        }
         public override void Singal(MenuObject sender, string message)
         {
             base.Singal(sender, message);
@@ -183,7 +213,10 @@ namespace Bestiary.BMenu
             {
                 if (message.Substring(message.LastIndexOf('_') + 1) == "NEXT")
                     buttonManager.nextButton.Action();
-                else buttonManager.prevButton.Action();
+                else
+                    buttonManager.prevButton.Action();
+
+                currentDescription?.RefreshDescriptionSliderNavigation();
             }
             else if (message.Contains("ENTITY"))
             {
