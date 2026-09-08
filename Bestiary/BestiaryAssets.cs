@@ -243,10 +243,6 @@ namespace Bestiary
                                 DiscoveredIcons.Add(
                                     id,
                                     relativePath);
-
-                                Plugin.logger.LogInfo(
-                                    $"[Bestiary] Custom icon: " +
-                                    $"{id} -> {relativePath}");
                             }
                             else
                             {
@@ -264,10 +260,6 @@ namespace Bestiary
                                 DiscoveredImages.Add(
                                     id,
                                     relativePath);
-
-                                Plugin.logger.LogInfo(
-                                    $"[Bestiary] Custom image: " +
-                                    $"{id} -> {relativePath}");
                             }
                             else
                             {

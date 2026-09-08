@@ -170,6 +170,7 @@ namespace Bestiary
             {
                 { "SkyWhale_data1", "Lotus Whale" },
                 { "HunterDaddy", "Hunter Long Legs" },
+                { "BabyLizard", "Baby Lizard" },
 
                 { "GrandOldDeer", "Grand Old Deer" },
                 { "TigerLizard", "Tiger Lizard" },
@@ -205,8 +206,13 @@ namespace Bestiary
                 { "NoodleEater", "Noodle Eater" },
                 { "ThornBug", "Thorn Bug" },
                 { "HazerMom", "Hazer Mom" },
-                
-
+                { "Hoverfly", "Hoverfly" },
+                { "Tailfly", "Tailfly" },
+                { "Polliwog", "Polliwog" },
+                { "Killerpillar", "Killerpillar" },
+                { "Glowpillar", "Glowpillar" },
+                { "Denture", "Denture" },
+                { "Xylo", "Xylo" },
                 { "dddddddddddddd", "ssssssssssssssss" },
             };
         public static readonly Dictionary<string, int[]> ExtraDebugVariants =
@@ -395,7 +401,7 @@ namespace Bestiary
                      kills = kills,
 
                     catalogId = catalogId,
-                    displayNameOverride = "Centipede",
+                    displayNameOverride = Plugin.Translate("Centipede"),
 
                     iconVariants =
                         new List<IconSymbol.IconSymbolData>
@@ -527,7 +533,7 @@ namespace Bestiary
                 out string customName))
             {
                 info.displayNameOverride =
-                    customName;
+                    Plugin.Translate(customName);
             }
             else if (info.iconData.intData != 0)
             {

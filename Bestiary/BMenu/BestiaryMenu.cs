@@ -84,7 +84,7 @@ namespace Bestiary.BMenu
 
             buttonManager.CreateSlugcatButtons(firstButtonPos, offset);
 
-            if (buttonManager.slugcatButtons.Length >= SlugcatManager.slugsInColumn)
+            if (buttonManager.slugcatButtons.Length > SlugcatManager.slugsInColumn)
                 buttonManager.CreateSliderButtons();
 
             buttonManager.CreatePagerButtons();

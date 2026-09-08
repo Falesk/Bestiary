@@ -10,7 +10,7 @@ namespace Bestiary
     {
         public const string ID = "falesk.bestiary";
         public const string Name = "Bestiary";
-        public const string Version = "1.0";
+        public const string Version = "1.1";
         public static ManualLogSource logger;
         public static DescriptionContainer descriptionContainer;
         private static bool loaded = false;
