@@ -11,7 +11,21 @@ namespace Bestiary
             On.Room.AddObject += Room_AddObject;
             On.SocialEventRecognizer.Killing += SocialEventRecognizer_Killing;
             On.RoomCamera.ChangeRoom += RoomCamera_ChangeRoom;
+#if DEBUG
+            On.Player.ProcessDebugInputs += Player_ProcessDebugInputs;
+#endif
         }
+#if DEBUG
+        private static void Player_ProcessDebugInputs(On.Player.orig_ProcessDebugInputs orig, Player self)
+        {
+            orig(self);
+            if (UnityEngine.Input.GetKeyDown("p"))
+            {
+                int rand = (int)UnityEngine.Mathf.Lerp(0, StaticWorld.creatureTemplates.Length, UnityEngine.Random.value);
+                self.room.AddObject(new KillingNotify(self.room, StaticWorld.creatureTemplates[rand].type, 0));
+            }
+        }
+#endif
 
         private static void Room_ctor(On.Room.orig_ctor orig, Room self, RainWorldGame game, World world, AbstractRoom abstractRoom, bool devUI)
         {

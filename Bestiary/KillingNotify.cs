@@ -23,6 +23,7 @@ namespace Bestiary
         private string killText;
         private readonly Dictionary<AnimationType, AnimationTiming> animations;
         private readonly float[] animationProgress;
+        private float textWidth;
 
         private const float QueueOffset = 50f;
 
@@ -134,6 +135,14 @@ namespace Bestiary
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             float distToRightEdge = (1 - screenEdgeOffsetX) * Custom.rainWorld.screenSize.x;
+            float labelOffset = Mathf.Clamp(textWidth - distToRightEdge * 0.5f, 0, distToRightEdge);
+            if (textWidth == 0)
+            {
+                FLabel mesureLabel = new FLabel(Custom.GetFont(), killText);
+                textWidth = mesureLabel.textRect.width;
+                pos += Vector2.left * Mathf.Clamp(textWidth - distToRightEdge * 0.75f, 0, distToRightEdge);
+            }
+
             Vector2 shadowOffset = new Vector2(1f, -1f);
             Vector2 scaleOfBackground = sLeaser.sprites[0].element.sourceSize;
             Vector2 slideOutDir = Vector2.right * distToRightEdge;
@@ -142,7 +151,7 @@ namespace Bestiary
             Vector2 iconPos = Vector2.Lerp(iconStartPos, pos, animationProgress[(int)AnimationType.Icon]) + slideOutProgression;
             Vector2 ascendingOffset = maxAscending == 0 ? Vector2.zero : Vector2.up * QueueOffset * ((float)ascendingProgress / ascendingTime);
 
-            sLeaser.sprites[BackSprite].scaleX = (1 / scaleOfBackground.x) * distToRightEdge * 1.2f;
+            sLeaser.sprites[BackSprite].scaleX = (1 / scaleOfBackground.x) * (distToRightEdge * 1.2f + labelOffset);
             sLeaser.sprites[BackSprite].scaleY = (1 / scaleOfBackground.y) * QueueOffset;
             sLeaser.sprites[BackSprite].alpha = 0.2f * (animationProgress[(int)AnimationType.Icon] - animationProgress[(int)AnimationType.SlideOut]);
             sLeaser.sprites[BackSprite].SetPosition(iconPos);

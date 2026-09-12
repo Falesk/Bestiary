@@ -952,7 +952,13 @@ namespace Bestiary
             if (type == null)
                 return "UnknownCreature";
 
-            return data == 0 ? type.value : $"{type.value}_data{data}";
+            if (data == 0)
+                return type.value;
+
+            if (StaticWorld.GetCreatureTemplate(type).IsLizard)
+                return $"Lizards_data{data}";
+
+            return $"{type.value}_data{data}";
         }
 
         private static string MakeRawKey(CreatureTemplate.Type type, int data)
