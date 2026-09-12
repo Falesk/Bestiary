@@ -59,7 +59,8 @@ namespace Bestiary
             if (killer is Player player && player.SessionRecord != null && !RWCustom.Custom.rainWorld.progression.currentSaveState.kills.Any(x => x.Key.critType == victim.Template.type)
                 && !player.SessionRecord.kills.Any(x => x.symbolData.critType == victim.Template.type))
             {
-                player.room.AddObject(new KillingNotify(player.room, victim.Template.type));
+                IconSymbol.IconSymbolData victimData = CreatureSymbol.SymbolDataFromCreature(victim.abstractCreature);
+                player.room.AddObject(new KillingNotify(player.room, victimData.critType, victimData.intData));
             }
             orig(self, killer, victim);
         }

@@ -9,6 +9,7 @@ namespace Bestiary
     public class KillingNotify : CosmeticSprite
     {
         public CreatureTemplate.Type creatureType;
+        public int creatureData;
         private const float screenEdgeOffsetX = 0.83f;
         private const float screenEdgeOffsetY = 0.15f;
         public Vector2 Pos => new Vector2(
@@ -32,10 +33,11 @@ namespace Bestiary
         private int maxAscending;
         private const int ascendingTime = 20;
 
-        public KillingNotify(Room room, CreatureTemplate.Type victimType) : base()
+        public KillingNotify(Room room, CreatureTemplate.Type victimType, int victimData) : base()
         {
             int maxV = -1;
             numberInQueue = maxV + 1;
+            creatureData = victimData;
             creatureType = victimType;
             this.room = room;
             pos = Pos + numberInQueue * new Vector2(0f, QueueOffset);
@@ -88,21 +90,31 @@ namespace Bestiary
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
-            IconSymbol.IconSymbolData iconSymbolData = new IconSymbol.IconSymbolData(creatureType, AbstractPhysicalObject.AbstractObjectType.Creature, 0);
+            IconSymbol.IconSymbolData iconSymbolData = new IconSymbol.IconSymbolData(creatureType, AbstractPhysicalObject.AbstractObjectType.Creature, creatureData);
             float linesWidth = 3f;
-
+            string creatureId = CreatureCatalog.MakeEntryId(creatureType, creatureData);
+            string iconElement = null;
+            bool hasCustomIcon = BestiaryAssets.TryGetCustomElement($"bestiary_custom/icons/{creatureId}", out iconElement);
             sLeaser.sprites = new FSprite[]
             {
                 new FSprite("Menu_Empty_Level_Thumb") { color = Color.black, anchorX = 0.1f },//background
-                new FSprite(CreatureSymbol.SpriteNameOfCreature(iconSymbolData)) { color = Color.black },//IconShadow
-                new FSprite(CreatureSymbol.SpriteNameOfCreature(iconSymbolData)) { color = CreatureSymbol.ColorOfCreature(iconSymbolData) },//Icon
+                new FSprite(hasCustomIcon ? iconElement : CreatureSymbol.SpriteNameOfCreature(iconSymbolData)) { color = Color.black },//IconShadow
+                new FSprite(hasCustomIcon ? iconElement : CreatureSymbol.SpriteNameOfCreature(iconSymbolData)) { color = hasCustomIcon ? Color.white : CreatureSymbol.ColorOfCreature(iconSymbolData)},//Icon
                 new FSprite("pixel") { scaleX = linesWidth, anchorX = 0, anchorY = 0, color = Color.black },//line 1 Shadow
                 new FSprite("pixel") { scaleX = linesWidth, anchorX = 1, anchorY = 0, color = Color.black },//line 2 Shadow
                 new FSprite("pixel") { scaleX = linesWidth, anchorX = 0, anchorY = 0, color = Color.white * 0.95f },//line 1
                 new FSprite("pixel") { scaleX = linesWidth, anchorX = 1, anchorY = 0, color = Color.white * 0.95f },//line 2
             };
 
-            string creatureName = Plugin.Translate(Plugin.ResolveCreatureName(creatureType.ToString()));
+            string creatureName;
+            if (CreatureCatalog.CustomDisplayNames.TryGetValue(creatureId, out string customName))
+            {
+                creatureName = Plugin.ResolveCreatureName(customName, creatureType.value);
+            }
+            else
+            {
+                creatureName = Plugin.ResolveCreatureName(creatureType.value);
+            }
             string gnd = fGendCreaturesRuLocale.Contains(creatureType) ? "f" : "m";
             killText = Plugin.Translate($"{gnd}$ was slain").Replace("$", creatureName);
             killLabel = new FLabel(Custom.GetFont(), string.Empty)

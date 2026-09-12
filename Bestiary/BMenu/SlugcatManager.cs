@@ -28,21 +28,21 @@ namespace Bestiary.BMenu
             for (int i = 0; i < SlugcatStats.Name.values.Count; i++)
             {
                 SlugcatStats.Name name = new SlugcatStats.Name(SlugcatStats.Name.values.GetEntry(i));
+                if (!ModManager.MSC && (SlugcatStats.IsSlugcatFromMSC(name) || name.value == "Slugpup"))
+                    continue;
+
+                if (!ModManager.Watcher && name.value == "Watcher")
+                    continue;
+
                 if (SlugcatStats.HiddenOrUnplayableSlugcat(name))
                     continue;
 
-                bool hasSave = bMenu.manager.rainWorld.progression.IsThereASavedGame(name);
+                BestiarySaveReader.Data saveData;
+                bool hasSave = BestiarySaveReader.TryRead(bMenu.manager.rainWorld.progression, name, out saveData);
                 SaveInfo saveInfo;
-
                 if (hasSave)
                 {
-                    SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(
-                        name,
-                        null,
-                        bMenu.manager.menuSetup,
-                        false);
-
-                    var kills = saveState.kills;
+                    var kills = saveData.kills;
                     List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
 
                     for (int j = 0; j < kills.Count; j++)
@@ -63,7 +63,7 @@ namespace Bestiary.BMenu
 
                     killedInfo = CreatureCatalog.PrepareForDisplay(killedInfo, forceDebugGroups);
                     List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
-                    saveInfo = new SaveInfo(name, killedInfo, itemInfo);
+                    saveInfo = new SaveInfo(name, killedInfo, itemInfo, saveData.cycleNumber, saveData.deaths);
                 }
                 else
                 {
@@ -79,23 +79,19 @@ namespace Bestiary.BMenu
 
                 listSlugcats.Add(saveInfo);
             }
-
-            Inv(listSlugcats);
+            if (ModManager.MSC)
+                Inv(listSlugcats);
             Saves = listSlugcats.ToArray();
         }
 
         private void Inv(List<SaveInfo> listSlugcats)
         {
             SlugcatStats.Name name = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
-            if (bMenu.manager.rainWorld.progression.IsThereASavedGame(name))
-            {
-                SaveState saveState = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(
-                    name,
-                    null,
-                    bMenu.manager.menuSetup,
-                    false);
+            BestiarySaveReader.Data saveData;
 
-                var kills = saveState.kills;
+            if (BestiarySaveReader.TryRead(bMenu.manager.rainWorld.progression, name, out saveData))
+            {
+                var kills = saveData.kills;
                 List<SaveInfo.Info.KilledInfo> killedInfo = new List<SaveInfo.Info.KilledInfo>();
 
                 for (int j = 0; j < kills.Count; j++)
@@ -119,7 +115,7 @@ namespace Bestiary.BMenu
                 List<SaveInfo.Info.ItemInfo> itemInfo = new List<SaveInfo.Info.ItemInfo>();
 
                 if (killedInfo.Count > 0)
-                    listSlugcats.Add(new SaveInfo(name, killedInfo, itemInfo));
+                    listSlugcats.Add(new SaveInfo(name, killedInfo, itemInfo, saveData.cycleNumber, saveData.deaths));
             }
         }
 

@@ -18,6 +18,20 @@ namespace Bestiary
                 "GrappleSnake",
                 
             };
+        private static readonly HashSet<string> WatcherCreatureTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "DrillCrab", "TowerCrab", "Barnacle", "SandGrub", "BigSandGrub", "BigMoth", "SmallMoth", "BoxWorm", "FireSprite", "Rattler", "SkyWhale", "ScavengerTemplar", "ScavengerDisciple", "Loach", "RotLoach", "BlizzardLizard", "BasiliskLizard", "IndigoLizard", "PeachLizard", "Rat", "Frog", "Tardigrade", "GrappleSnake", "Millipede", "Angler", "RippleSpider", "MothGrub"
+        };
+
+        private static readonly HashSet<string> DownpourCreatureTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "HunterDaddy", "FireBug", "SlugNPC", "ScavengerKing", "TrainLizard"
+        };
+
+        private static readonly HashSet<string> SharedDlcCreatureTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "MirosVulture", "SpitLizard", "EelLizard", "MotherSpider", "TerrorLongLegs", "AquaCenti", "StowawayBug", "ScavengerElite", "Inspector", "Yeek", "BigJelly", "JungleLeech", "ZoopLizard"
+        };
         public static readonly List<string> Order = new List<string>
         {
             "Slugcat",
@@ -159,7 +173,12 @@ namespace Bestiary
             "MiniLeviathan",
             "MiniFlyingBigEel",
             "FlyingBigEel",
-            
+            // Outsider
+            "Mothpup",
+            // Mosquitos
+            "Mosquito",
+            "ExplodingMosquito",
+            "AngryMosquito",
         };
 
         public static readonly HashSet<string> Hidden = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -168,51 +187,152 @@ namespace Bestiary
         };
         public static readonly Dictionary<string, string> CustomDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "SkyWhale_data1", "Lotus Whale" },
+            // Vanilla
+                { "SlugNPC", "Slugpup" },
+                { "Fly", "Batfly" },
+                { "Overseer", "Overseer" },
+                { "CicadaB", "Black Squidcada" },
+                { "CicadaA", "White Squidcada" },
+                { "LanternMouse", "Lantern Mouse" },
+                { "Yeek", "Yeek" },
+                { "TubeWorm", "Grappling Worm" },
+                { "Rat", "Rat" },
+                { "Hazer", "Hazer" },
+                { "JetFish", "JetFish" },
+                { "Snail", "Snail" },
+                { "GreenLizard", "Green Lizard" },
+                { "PinkLizard", "Pink Lizard" },
+                { "BlueLizard", "Blue Lizard" },
+                { "WhiteLizard", "White Lizard" },
+                { "YellowLizard", "Yellow Lizard" },
+                { "BlackLizard", "Black Lizard" },
+                { "CyanLizard", "Cyan Lizard" },
+                { "RedLizard", "Red Lizard" },
+                { "SpitLizard", "Caramel Lizard" },
+                { "Salamander", "Salamander" },
+                { "EelLizard", "Eel Lizard" },
+                { "ZoopLizard", "Strawberry Lizard" },
+                { "TrainLizard", "Train Lizard" },
+                { "PeachLizard", "Peach Lizard" },
+                { "IndigoLizard", "Indigo Lizard" },
+                { "BasiliskLizard", "Basilisk Lizard" },
+                { "BlizzardLizard", "Blizzard Lizard" },
+                { "lizards_data1", "\"Slight\" and \"Opossum\"\nRot Lizards" },
+                { "lizards_data2", "\"Full\" Rot Lizards" },
+                { "SmallNeedleWorm", "Infant Noodlefly" },
+                { "BigNeedleWorm", "Adult Noodlefly" },
+                { "EggBug", "Eggbug" },
+                { "FireBug", "Firebug" },
+                { "DropBug", "Dropwig" },
+                { "StowawayBug", "Stowaway" },
+                { "PoleMimic", "Pole Plant" },
+                { "GarbageWorm", "Garbage Worm" },
+                { "TentaclePlant", "Monster Kelp" },
+                { "Leech", "Leech" },
+                { "SeaLeech", "Sea Leech" },
+                { "JungleLeech", "Jungle Leech" },
+                { "VultureGrub", "Vulture Grub" },
+                { "Vulture", "Vulture" },
+                { "KingVulture", "King Vulture" },
+                { "MirosVulture", "Miros Vulture" },
+                { "MirosBird", "Miros Bird" },
+                { "Spider", "Coalescipede" },
+                { "BigSpider", "Big Spider" },
+                { "SpitterSpider", "Spitter Spider" },
+                { "MotherSpider", "Mother Spider" },
+                { "SmallCentipede", "Infant Centipede" },
+                { "Centipede", "Adult Centipede" },
+                { "RedCentipede", "Red Centipede" },
+                { "Centiwing", "Centiwing" },
+                { "AquaCenti", "Aquapede" },
+                { "Angler", "Angler" },
+                { "Barnacle", "Barnacle" },
+                { "Tardigrade", "Tardigrade" },
+                { "Frog", "Frog" },
+                { "Scavenger", "Scavenger" },
+                { "ScavengerElite", "Elite Scavenger" },
+                { "ScavengerKing", "Chieftain Scavenger" },
+                { "ScavengerTemplar", "Scavenger Templar" },
+                { "ScavengerDisciple", "Scavenger Disciple" },
+                { "BoxWorm", "Box Worm" },
+                { "FireSprite", "Fire Sprite" },
+                { "MothGrub", "Moth Grub" },
+                { "SmallMoth", "Small Moth" },
+                { "BigMoth", "Big Moth" },
+                { "SandGrub", "Sand Grub" },
+                { "BigSandGrub", "Big Sand Grub" },
+                { "BrotherLongLegs", "Brother Long Legs" },
+                { "DaddyLongLegs", "Daddy Long Legs" },
+                { "TerrorLongLegs", "Terror Long Legs" },
                 { "HunterDaddy", "Hunter Long Legs" },
+                { "Inspector", "Inspector" },
+                { "Rattler", "Rattler" },
+                { "RippleSpider", "Ripple Spider" },
+                { "Loach", "Loach" },
+                { "RotLoach", "Rot Loach" },
+                { "DrillCrab", "Drill Crab" },
+                { "TowerCrab", "Tower Crab" },
+                { "Deer", "Rain Deer" },
+                { "SkyWhale", "Sky Whale" },
+                { "SkyWhale_data1", "Locust Whale" },
+                { "BigEel", "Leviathan" },
+                { "BigJelly", "Big Jellyfish" },
+                { "TempleGuard", "Guardian" },
+                { "Millipede", "Millipede" },
+                // Falesk mods
                 { "BabyLizard", "Baby Lizard" },
-
+            // Kiwi's mods
                 { "GrandOldDeer", "Grand Old Deer" },
                 { "TigerLizard", "Tiger Lizard" },
-                
+                { "Needlefly", "Needlefly" },
+            // Drought mod
                 { "WalkerBeast", "Walker Beast" },
                 { "GreyLizard", "Grey Lizard" },
                 { "SeaDrake", "Sea Drake" },
-
-                { "SurfaceSwimmer", "Surface Swimmer" },
-                { "Scutigera", "Scutigera" },
-                { "RedHorrorCenti", "Red Horror Centipede" },
-                { "MiniLeviathan", "Mini Leviathan" },
-                { "FlyingBigEel", "Echo Leviathan" },
-                { "MiniFlyingBigEel", "Mini Echo Leviathan" },
-                { "FatFirefly", "Fat Firefly" },
-                { "BouncingBall", "Bouncing Ball" },
-                { "WaterSpitter", "Water Spitter" },
+            // M4blelous pack
                 { "WaterBlob", "Water Blob" },
-                { "HunterSeeker", "Hunter Seeker" },
-                { "TintedBeetle", "Tinted Beetle" },
-                { "Blizzor", "Blizzor" },
-                { "MoleSalamander", "Mole Salamander" },
-                { "MiniBlackLeech", "Mini Black Leech" },
-                { "CommonEel", "Common Eel" },
-                { "DivingBeetle", "Diving Beetle" },
-                { "ChipChop", "Chip Chop" },
-                { "XyloWorm", "Xylo Worm" },
-                { "SparkEye", "Spark Eye" },
-                { "ScavengerSentinel", "Scavenger Sentinel" },
-                { "AlphaOrange", "Alpha Orange Lizard" },
-                { "MamaBug", "Mama Bug" },
-                { "SilverLizard", "Silver Lizard" },
-                { "NoodleEater", "Noodle Eater" },
-                { "ThornBug", "Thorn Bug" },
-                { "HazerMom", "Hazer Mom" },
+                { "BouncingBall", "Bouncing Ball" },
                 { "Hoverfly", "Hoverfly" },
                 { "Tailfly", "Tailfly" },
+                { "SilverLizard", "Silver Lizard" },
+                { "NoodleEater", "Noodle Eater" },
                 { "Polliwog", "Polliwog" },
-                { "Killerpillar", "Killerpillar" },
+                { "MoleSalamander", "Mole Salamander" },
+                { "WaterSpitter", "Water Spitter" },
+                { "HunterSeeker", "Hunter Seeker" },
+                { "AlphaOrange", "Alpha Orange Lizard" },
+                { "ChipChop", "Chip Chop" },
+                { "SurfaceSwimmer", "Surface Swimmer" },
+                { "TintedBeetle", "Tinted Beetle" },
+                { "ThornBug", "Thorn Bug" },
+                { "DivingBeetle", "Diving Beetle" },
+                { "MamaBug", "Mama Bug" },
+                { "Sporantula", "Sporantula" },
                 { "Glowpillar", "Glowpillar" },
+                { "Killerpillar", "Killerpillar" },
+                { "MiniScutigera", "MiniScutigera" },
+                { "Scutigera", "Scutigera" },
+                { "RedHorrorCenti", "Red Horror Centipede" },
+                { "MiniBlackLeech", "Mini Black Leech" },
+                { "HazerMom", "Hazer Mom" },
+                { "CommonEel", "Common Eel" },
+                { "Blizzor", "Blizzor" },
+                { "SparkEye", "Spark Eye" },
+                { "FatFirefly", "Fat Firefly" },
+                { "ScavengerSentinel", "Scavenger Sentinel" },
                 { "Denture", "Denture" },
+                { "XyloWorm", "Xylo Worm" },
                 { "Xylo", "Xylo" },
+                { "MiniLeviathan", "Mini Leviathan" },
+                { "MiniFlyingBigEel", "Mini Echo Leviathan" },
+                { "FlyingBigEel", "Echo Leviathan" },
+            // Outsider
+                { "Mothpup", "Mothpup" },
+            // Mosquitos
+                { "Mosquito", "Mosquito" },
+                { "ExplodingMosquito", "Exploding Mosquito" },
+                { "AngryMosquito", "Angry Mosquito" },
+
                 { "dddddddddddddd", "ssssssssssssssss" },
             };
         public static readonly Dictionary<string, int[]> ExtraDebugVariants =
@@ -232,7 +352,208 @@ namespace Bestiary
                 "RedHorrorCenti",
             };
         private static bool _loggedDiscoveredCreatures;
+        private static bool _loggedContentAudit;
+        public const bool ContentAuditEnabled = true; //for easier finding things witchout icon/desciption/picture please do not delete
+        public static void LogContentAudit( //DEBUG THING
+            List<SaveInfo.Info.KilledInfo> entries)
+        {
+            if (!ContentAuditEnabled ||
+                _loggedContentAudit ||
+                entries == null)
+            {
+                return;
+            }
 
+            _loggedContentAudit = true;
+
+            Plugin.logger.LogInfo(
+                "================ BESTIARY CONTENT AUDIT ================"
+            );
+
+            Plugin.logger.LogInfo(
+                "---------------- FOUND CREATURES ----------------"
+            );
+
+            foreach (SaveInfo.Info.KilledInfo info in entries)
+            {
+                if (info == null)
+                    continue;
+
+                string id =
+                    !string.IsNullOrWhiteSpace(info.catalogId)
+                        ? info.catalogId
+                        : MakeEntryId(
+                            info.iconData.critType,
+                            info.iconData.intData
+                        );
+
+                if (!string.IsNullOrWhiteSpace(
+                    info.displayNameOverride))
+                {
+                    Plugin.logger.LogInfo(
+                        $"[FOUND] {id} -> {info.displayNameOverride}"
+                    );
+                }
+                else
+                {
+                    Plugin.logger.LogInfo(
+                        $"[FOUND] {id}"
+                    );
+                }
+            }
+
+            Plugin.logger.LogInfo(
+                "---------------- MISSING CONTENT ----------------"
+            );
+
+            int missingDescriptions = 0;
+            int missingIcons = 0;
+            int missingImages = 0;
+
+            foreach (SaveInfo.Info.KilledInfo info in entries)
+            {
+                if (info == null)
+                    continue;
+
+                string id =
+                    !string.IsNullOrWhiteSpace(info.catalogId)
+                        ? info.catalogId
+                        : MakeEntryId(
+                            info.iconData.critType,
+                            info.iconData.intData
+                        );
+
+                // DESCRIPTION
+                bool hasDescription =
+                    Plugin.descriptionContainer != null &&
+                    Plugin.descriptionContainer.Creatures != null &&
+                    Plugin.descriptionContainer.Creatures.TryGetValue(
+                        id,
+                        out string description
+                    ) &&
+                    !string.IsNullOrWhiteSpace(description);
+
+                if (!hasDescription)
+                {
+                    missingDescriptions++;
+
+                    Plugin.logger.LogWarning(
+                        $"[MISSING DESCRIPTION] {id}"
+                    );
+                }
+
+                // ICON
+                bool hasIcon = false;
+
+                string iconPath =
+                    !string.IsNullOrWhiteSpace(info.customIconPath)
+                        ? info.customIconPath
+                        : $"bestiary_custom/icons/{id}";
+
+                if (BestiaryAssets.TryGetCustomElement(
+                    iconPath,
+                    out _))
+                {
+                    hasIcon = true;
+                }
+                else
+                {
+                    try
+                    {
+                        IconSymbol.IconSymbolData iconData =
+                            info.iconVariants != null &&
+                            info.iconVariants.Count > 0
+                                ? info.iconVariants[0]
+                                : info.iconData;
+
+                        string spriteName =
+                            CreatureSymbol.SpriteNameOfCreature(iconData);
+
+                        hasIcon =
+                            !string.IsNullOrWhiteSpace(spriteName) &&
+                            Futile.atlasManager._allElementsByName
+                                .ContainsKey(spriteName);
+                    }
+                    catch
+                    {
+                        hasIcon = false;
+                    }
+                }
+
+                if (!hasIcon)
+                {
+                    missingIcons++;
+
+                    Plugin.logger.LogWarning(
+                        $"[MISSING ICON] {id}"
+                    );
+                }
+
+
+                // IMAGE
+                bool hasImage = false;
+
+                string imagePath =
+                    !string.IsNullOrWhiteSpace(info.customImagePath)
+                        ? info.customImagePath
+                        : $"bestiary_custom/images/{id}";
+
+                if (BestiaryAssets.TryGetCustomElement(
+                    imagePath,
+                    out _))
+                {
+                    hasImage = true;
+                }
+                else
+                {
+                    string creatureName =
+                        info.iconData.critType?.ToString();
+
+                    if (!string.IsNullOrWhiteSpace(creatureName))
+                    {
+                        string vanillaImageName =
+                            $"bestiary_{creatureName.ToLowerInvariant()}";
+
+                        hasImage =
+                            Futile.atlasManager._allElementsByName
+                                .ContainsKey(vanillaImageName);
+                    }
+                }
+
+                if (!hasImage)
+                {
+                    missingImages++;
+
+                    Plugin.logger.LogWarning(
+                        $"[MISSING IMAGE] {id}"
+                    );
+                }
+            }
+
+            Plugin.logger.LogInfo(
+                "---------------- SUMMARY ----------------"
+            );
+
+            Plugin.logger.LogInfo(
+                $"Creatures: {entries.Count}"
+            );
+
+            Plugin.logger.LogInfo(
+                $"Missing descriptions: {missingDescriptions}"
+            );
+
+            Plugin.logger.LogInfo(
+                $"Missing icons: {missingIcons}"
+            );
+
+            Plugin.logger.LogInfo(
+                $"Missing images: {missingImages}"
+            );
+
+            Plugin.logger.LogInfo(
+                "========================================================"
+            );
+        }
         public static void AddAllRegisteredCreatures(List<SaveInfo.Info.KilledInfo> killedInfo)
         {
             foreach (CreatureTemplate.Type type in GetAllRegisteredTypes())
@@ -265,6 +586,11 @@ namespace Bestiary
                 if (info == null)
                     continue;
 
+                bool isLizard = info.iconData.critType != null && (info.iconData.critType.value.IndexOf("Lizard", StringComparison.OrdinalIgnoreCase) >= 0 || info.iconData.critType == CreatureTemplate.Type.Salamander);
+
+                if (!ModManager.Watcher && isLizard && (info.iconData.intData == 1 || info.iconData.intData == 2))
+                    continue;
+
                 if (IsIgnoredCreatureType(info.iconData.critType))
                     continue;
 
@@ -290,8 +616,12 @@ namespace Bestiary
             HashSet<string> consumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             List<SaveInfo.Info.KilledInfo> result = new List<SaveInfo.Info.KilledInfo>();
 
-            TryAddLizardGroup(result, merged, consumed, 1, "lizards_data1", "\"Slight\" and \"Opossum\"\nRot Lizards", forceDebugGroups);
-            TryAddLizardGroup(result, merged, consumed, 2, "lizards_data2", "\"Full\" Rot Lizards", forceDebugGroups);
+            // if (ModManager.Watcher)
+            // {
+            //     TryAddLizardGroup(result, merged, consumed, 1, "lizards_data1", "\"Slight\" and \"Opossum\"\nRot Lizards", forceDebugGroups);
+            //     TryAddLizardGroup(result, merged, consumed, 2, "lizards_data2", "\"Full\" Rot Lizards", forceDebugGroups);
+            // }
+
             TryAddCentipedeGroup(result, merged, consumed, forceDebugGroups);
 
             foreach (string key in originalOrder)
@@ -533,7 +863,7 @@ namespace Bestiary
                 out string customName))
             {
                 info.displayNameOverride =
-                    Plugin.Translate(customName);
+                    Plugin.ResolveCreatureName(customName, id);
             }
             else if (info.iconData.intData != 0)
             {
@@ -544,10 +874,10 @@ namespace Bestiary
             if (DependsOnLengthCreatures.Contains(info.catalogId))
             {
                 info.healthOverride =
-                    "b-DependsOnLength";
+                    "Depends on length";
 
                 info.pointsPerKillOverride =
-                    "b-DependsOnLength";
+                    "Depends on length";
             }
         }
 

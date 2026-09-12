@@ -52,15 +52,24 @@ namespace Bestiary.BMenu
                         : null;
                     InitCreaturePage(iconData);
                     break;
+                // case EntityManager.EntityType.Slugcat:
+                //     SlugcatStats.Name name = bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat].name;
+                //     SaveState save = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                //     _slugcatId = name;
+                //     int deaths = save.deathPersistentSaveData.deaths;
+                //     int cycles = save.cycleNumber;
+                //     characteristic = new SlugcatCharacteristic(name, deaths, cycles - 1);
+                //     InitSlugcatPage();
+                //     break;
                 case EntityManager.EntityType.Slugcat:
-                    SlugcatStats.Name name = bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat].name;
-                    SaveState save = bMenu.manager.rainWorld.progression.GetOrInitiateSaveState(name, null, bMenu.manager.menuSetup, false);
+                {
+                    SaveInfo saveInfo = bMenu.slugcatManager.Saves[bMenu.slugcatManager.SelectedSlugcat];
+                    SlugcatStats.Name name = saveInfo.name;
                     _slugcatId = name;
-                    int deaths = save.deathPersistentSaveData.deaths;
-                    int cycles = save.cycleNumber;
-                    characteristic = new SlugcatCharacteristic(name, deaths, cycles - 1);
+                    characteristic = new SlugcatCharacteristic(name, saveInfo.deaths, saveInfo.cycles - 1);
                     InitSlugcatPage();
                     break;
+                }
                 case EntityManager.EntityType.Item:
                     characteristic = null;
                     InitItemPage();
@@ -130,11 +139,8 @@ namespace Bestiary.BMenu
             else
             {
                 IconSymbol.IconSymbolData current = GetCurrentCreatureIconData(iconData);
-                icon = new FSprite(CreatureSymbol.SpriteNameOfCreature(current))
-                {
-                    color = CreatureSymbol.ColorOfCreature(current),
-                    scale = 2
-                };
+                string sprite = CreatureSymbol.SpriteNameOfCreature(current);
+                icon = new FSprite(sprite) { color = CreatureSymbol.ColorOfCreature(current), scale = 2f };
 
                 if (_creatureInfo?.iconVariants != null && _creatureInfo.iconVariants.Count > 1)
                     _lastAnimatedCreatureIconVariant = CreatureCatalog.GetAnimatedVariantIndex(_creatureInfo.iconVariants.Count);
@@ -172,7 +178,8 @@ namespace Bestiary.BMenu
 
             try
             {
-                icon.SetElementByName(CreatureSymbol.SpriteNameOfCreature(data));
+                string sprite = CreatureSymbol.SpriteNameOfCreature(data);
+                icon.SetElementByName(sprite);
                 icon.color = CreatureSymbol.ColorOfCreature(data);
                 icon.scale = 2f;
             }
@@ -233,6 +240,11 @@ namespace Bestiary.BMenu
             {
                 customImagePath =
                     $"bestiary_custom/images/{_slugcatId.value}";
+#if DEBUG
+                Plugin.logger.LogInfo(
+                    $"[Bestiary] Slugcat image ID: {_slugcatId.value}"
+                );
+#endif
             }
 
             if (!string.IsNullOrEmpty(customImagePath) &&
@@ -863,8 +875,7 @@ namespace Bestiary.BMenu
                 ApplyDescriptionScroll();
             }
         }
-        private bool IsInv => name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value;
-
+        private bool IsInv => ModManager.MSC && MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel != null && name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel.value;
         private void Inv()
         {
             string line = Plugin.Translate("Thanks Andrew.");

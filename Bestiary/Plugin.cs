@@ -10,7 +10,7 @@ namespace Bestiary
     {
         public const string ID = "falesk.bestiary";
         public const string Name = "Bestiary";
-        public const string Version = "1.1";
+        public const string Version = "1.1.1";
         public static ManualLogSource logger;
         public static DescriptionContainer descriptionContainer;
         private static bool loaded = false;
@@ -81,6 +81,14 @@ namespace Bestiary
                 translation = RWCustom.Custom.rainWorld.inGameTranslator.Translate(text);
                 RWCustom.Custom.rainWorld.options.language = new InGameTranslator.LanguageID(currLang);
             }
+            return translation;
+        }
+
+        public static string ResolveCreatureName(string text, string critType)
+        {
+            string translation = Translate(text);
+            if (text == translation && RWCustom.Custom.rainWorld.options.language != InGameTranslator.LanguageID.English)
+                return ResolveCreatureName(critType);
             return translation;
         }
 

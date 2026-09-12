@@ -193,12 +193,13 @@ namespace Bestiary.BMenu
                 buttonManager.slugcatButtons[index].Action();
                 entityManager.UpdatePagerButtons();
                 entityManager.UpdatePageLabel(true);
-
+#if DEBUG
+                CreatureCatalog.LogContentAudit(slugcatManager.Saves[slugcatManager.SelectedSlugcat].kills);
+#endif
                 currentDescription?.Clear();
 
-                SlugcatStats.Name name = slugcatManager.Saves[slugcatManager.SelectedSlugcat].name;
-                SaveState save = manager.rainWorld.progression.GetOrInitiateSaveState(name, null, manager.menuSetup, false);
-                int cycles = save.cycleNumber;
+                SaveInfo selectedSave = slugcatManager.Saves[slugcatManager.SelectedSlugcat];
+                int cycles = selectedSave.cycles;
                 EntityManager.EntityType entityType = entityManager.EntitiesTotal > 0 || cycles > 0 ? EntityManager.EntityType.Slugcat : EntityManager.EntityType.None;
                 IconSymbol.IconSymbolData icon = new IconSymbol.IconSymbolData(CreatureTemplate.Type.Slugcat, AbstractPhysicalObject.AbstractObjectType.Creature, 0);
                 currentDescription = new DescriptionPage(this, icon, entityType);

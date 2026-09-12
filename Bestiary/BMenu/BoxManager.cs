@@ -17,12 +17,13 @@ namespace Bestiary.BMenu
 
         public void CreateBox(string name, Vector2 normPos, Vector2 normSize, Color color, float alpha = 1)
         {
-            Box b = new Box(this, normPos, normSize)
+            if (boxes.TryGetValue(name, out Box oldBox))
             {
-                fillColor = color,
-                fillAlpha = alpha
-            };
+                oldBox.Clear();
+                boxes.Remove(name);
+            }
 
+            Box b = new Box(this, normPos, normSize) { fillColor = color, fillAlpha = alpha };
             boxes.Add(name, b);
             b.Init();
         }

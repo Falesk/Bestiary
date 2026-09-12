@@ -8,17 +8,30 @@ namespace Bestiary.BMenu
         public List<Info.KilledInfo> kills;
         public List<Info.ItemInfo> items;
 
-        public SaveInfo(SlugcatStats.Name _name, List<Info.KilledInfo> _kills, List<Info.ItemInfo> _items)
+        public int cycles;
+        public int deaths;
+        public bool hasSave;
+
+        public SaveInfo(SlugcatStats.Name _name, List<Info.KilledInfo> _kills, List<Info.ItemInfo> _items, int _cycles = 0, int _deaths = 0)
         {
             name = _name;
             kills = _kills;
             items = _items;
+
+            cycles = _cycles;
+            deaths = _deaths;
+            hasSave = true;
         }
 
         public SaveInfo(SlugcatStats.Name _name)
         {
             name = _name;
             kills = null;
+            items = null;
+
+            cycles = 0;
+            deaths = 0;
+            hasSave = false;
         }
 
         public abstract class Info
